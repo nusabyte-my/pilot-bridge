@@ -2,11 +2,12 @@ import { createHmac, randomBytes, timingSafeEqual, scryptSync } from "node:crypt
 import { cookies } from "next/headers";
 import { getData } from "./store";
 import type { User } from "./types";
+import { bootstrapCredentials, findCredential, loadCredentials } from "./credentials";
 
 const COOKIE = "pilotbridge_session";
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 export type Role = User["role"];
-export interface Session { userId: string; organisationId: string; role: Role; expiresAt: number; }
+export interface Session { userId: string; organisationId: string; role: Role; expiresAt: number; sessionVersion?: number; }
 function secret() {
   const value = process.env.AUTH_SECRET;
   if (!value || value.length < 32) throw new Error("AUTH_SECRET must be at least 32 characters.");
@@ -27,6 +28,8 @@ export function verifySessionToken(token: string | undefined): Session | null {
   try {
     const session = JSON.parse(Buffer.from(payload, "base64url").toString()) as Session;
     if (!session.userId || !session.organisationId || !session.role || session.expiresAt < Date.now()) return null;
+    const credential = findCredentialForUser(session.userId);
+    if (credential && (session.sessionVersion || 1) < credential.sessionVersion) return null;
     return session;
   } catch { return null; }
 }
@@ -52,14 +55,12 @@ export function verifyPassword(password: string, salt: string, hash: string) {
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 export function authenticate(email: string, password: string): Session | null {
-  const configured = process.env.AUTH_USERS;
-  if (!configured) return null;
-  let entries: { email: string; role: Role; userId: string; organisationId: string; salt: string; hash: string }[];
-  try { entries = JSON.parse(configured); } catch { return null; }
-  const entry = entries.find(item => item.email.toLowerCase() === email.trim().toLowerCase());
+  bootstrapCredentials();
+  const entry = findCredential(email);
   if (!entry || !verifyPassword(password, entry.salt, entry.hash)) return null;
   const user = getData().users.find(item => item.id === entry.userId);
   if (!user) return null;
-  return { userId: user.id, organisationId: user.organisationId, role: user.role, expiresAt: Date.now() + SESSION_TTL_MS };
+  return { userId: user.id, organisationId: user.organisationId, role: user.role, expiresAt: Date.now() + SESSION_TTL_MS, sessionVersion: entry.sessionVersion };
 }
+export function findCredentialForUser(userId: string) { return loadCredentials().find(item => item.userId === userId); }
 export function isProduction() { return process.env.NODE_ENV === "production" && process.env.PILOTBRIDGE_DEMO !== "true"; }
