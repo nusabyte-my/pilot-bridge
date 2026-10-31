@@ -56,10 +56,10 @@ export function LandingPage() {
           </Link>
           <nav className="flex items-center gap-2 sm:gap-3" aria-label="Landing">
             <Button asChild variant="ghost" className="hidden text-navy/70 hover:bg-navy/5 hover:text-navy sm:inline-flex">
-              <Link href="/marketplace">Marketplace</Link>
+              <Link href="/app/marketplace">Marketplace</Link>
             </Button>
             <Button asChild>
-              <Link href="/challenges">
+              <Link href="/app">
                 Open the demo
                 <ArrowUpRight />
               </Link>
@@ -79,7 +79,7 @@ export function LandingPage() {
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="min-w-44">
-              <Link href="/challenges">
+              <Link href="/app">
                 Open the demo
                 <ArrowUpRight />
               </Link>
@@ -90,7 +90,7 @@ export function LandingPage() {
               variant="outline"
               className="min-w-44 border-navy/15 bg-transparent text-navy hover:bg-navy hover:text-ivory"
             >
-              <Link href="/marketplace">Marketplace</Link>
+              <Link href="/app/marketplace">Marketplace</Link>
             </Button>
           </div>
         </section>
@@ -190,13 +190,13 @@ export function LandingPage() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="bg-teal text-ivory hover:bg-teal/90">
-                <Link href="/outcomes">
+                <Link href="/app/outcomes">
                   Outcomes
                   <ArrowUpRight />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="border-ivory/20 bg-transparent text-ivory hover:bg-ivory hover:text-navy">
-                <Link href="/poc">POC workspace</Link>
+                <Link href="/app/poc">POC workspace</Link>
               </Button>
             </div>
           </div>
