@@ -114,6 +114,18 @@ export function rejectResult(pocId = "poc-delivery"): ActionResult {
     return { ok: true, message: "Result returned for changes. Commercial progression remains undecided." };
   });
 }
+export function closePoc(reason: string, pocId = "poc-delivery"): ActionResult {
+  return updateData(data => {
+    const poc = scopedPoc(data, pocId);
+    if (!reason.trim() || reason.trim().length < 5) return failure("Record a closure reason before closing the POC.");
+    if (["Completed"].includes(poc.status)) return failure("A completed POC cannot be closed without a POC.");
+    poc.status = "Draft"; poc.completedAt = null; poc.closedReason = reason.trim(); poc.closedAt = new Date().toISOString();
+    const challenge = data.challenges.find(item => item.id === poc.challengeId);
+    if (challenge) challenge.status = "Closed without POC";
+    recordActivity(data, poc.id, `POC closed without POC: ${reason.trim()}`);
+    return { ok: true, message: "POC closed without POC. The reason is recorded in activity history." };
+  });
+}
 export function saveNarrative(narrative: string, pocId = "poc-delivery"): ActionResult {
   return updateData(data => {
     const result = data.results[pocId];

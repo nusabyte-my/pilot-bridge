@@ -22,5 +22,22 @@ export const meetingDraftSchema = z.object({
   unresolvedIssues: z.array(z.string()),
   nextMilestone: z.string().nullable(),
 });
+export const matchExplanationSchema = z.object({
+  startupId: z.string(),
+  reasons: z.array(z.string()).min(1).max(4),
+  risks: z.array(z.string()).max(4),
+  questions: z.array(z.string()).min(1).max(4),
+  evidenceGaps: z.array(z.string()).max(4),
+});
+export const matchExplanationsSchema = z.object({ matches: z.array(matchExplanationSchema).max(3) });
+export const introductionPackSchema = z.object({
+  subject: z.string().min(3).max(120),
+  email: z.string().min(40).max(3000),
+  startupSummary: z.string().min(20).max(1200),
+  challengeBrief: z.string().min(20).max(1200),
+  meetingObjective: z.string().min(10).max(400),
+  questions: z.array(z.string()).min(1).max(5),
+  nextStep: z.string().min(10).max(400),
+});
 export const inputSchema = z.object({ problem: z.string().trim().min(20).max(10000) });
 export const resultSchema = z.object({ baseline: z.string().min(1), target: z.string().min(1), actual: z.string().min(1), unit: z.string().min(1), period: z.string().min(1), testimonial: z.string().max(1000), evidence: z.string().min(3) });

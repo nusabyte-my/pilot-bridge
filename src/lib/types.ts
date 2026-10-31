@@ -1,4 +1,4 @@
-export type ChallengeStatus = "Draft" | "Matching" | "Partner selected" | "Charter review" | "Active" | "Completed";
+export type ChallengeStatus = "Draft" | "Matching" | "Partner selected" | "Charter review" | "Active" | "Completed" | "Closed without POC";
 export type PocStatus = "Draft" | "Matching" | "PartnerSelected" | "CharterReview" | "Active" | "ResultSubmitted" | "Completed";
 export type CommercialStage = "No decision" | "Commercial negotiation" | "Contract signed" | "Not proceeding";
 export interface Organisation { id: string; name: string; type: "Corporate" | "Startup" | "Investor" | "Programme"; country: string; sector: string; }
@@ -32,7 +32,7 @@ export interface Milestone { id: string; pocId: string; title: string; owner: st
 export interface PocAction { id: string; pocId: string; title: string; owner: string; dueDate: string; status: string; }
 export interface Poc {
   id: string; challengeId: string; startupId: string | null; status: PocStatus; charter: string | null;
-  corporateApproved: boolean; startupApproved: boolean; createdAt: string; partnerSelectedAt: string | null; charterReviewAt: string | null; activatedAt: string | null; resultSubmittedAt: string | null; completedAt: string | null; lastActivityAt: string;
+  corporateApproved: boolean; startupApproved: boolean; createdAt: string; partnerSelectedAt: string | null; charterReviewAt: string | null; activatedAt: string | null; resultSubmittedAt: string | null; completedAt: string | null; closedAt?: string | null; closedReason?: string | null; lastActivityAt: string;
   readiness: Record<string, boolean>;
 }
 export interface Evidence { id: string; pocId: string; reference: string; description: string; verified: boolean; }

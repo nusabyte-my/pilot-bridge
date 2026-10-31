@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { structureChallenge, extractMeeting, draftResult } from "@/lib/ai";
-import { activatePoc, advanceCommercial, approveCharter, editCharter, generateCharter, makeOverdue, rejectResult, reviewResult, saveNarrative, saveChallenge, saveMeetingActions, selectPartner, submitResult, toggleAction, toggleReadiness } from "@/lib/workflow";
-import { resetData } from "@/lib/store";
+import { structureChallenge, extractMeeting, draftResult, explainMatches, draftIntroduction } from "@/lib/ai";
+import { activatePoc, advanceCommercial, approveCharter, editCharter, generateCharter, makeOverdue, closePoc, rejectResult, reviewResult, saveNarrative, saveChallenge, saveMeetingActions, selectPartner, submitResult, toggleAction, toggleReadiness } from "@/lib/workflow";
+import { getData, resetData } from "@/lib/store";
+import { matchCriteria } from "@/lib/matching";
 import { inputSchema } from "@/lib/schemas";
 import { convertPocIdea, requestIntroduction, savePocIdea, saveStartupProfile } from "@/lib/marketplace";
 import { z } from "zod";
@@ -19,6 +20,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       }));
       return NextResponse.json(await structureChallenge(input.problem, files));
     }
+    if (operation === "explain-matches") { const body = await request.json(); const data = getData(); const challenge = data.challenges.find(c => c.id === z.string().parse(body.challengeId)); if (!challenge) throw new Error("Challenge not found."); const startups = [...data.startups].sort((a,b)=>matchCriteria(b).total-matchCriteria(a).total).slice(0,3); return NextResponse.json(await explainMatches(challenge,startups)); }
+    if (operation === "introduction") { const body = await request.json(); const data = getData(); const challenge = data.challenges.find(c => c.id === z.string().parse(body.challengeId)); const startup = data.startups.find(s => s.id === z.string().parse(body.startupId)); if (!challenge || !startup) throw new Error("Challenge or startup not found."); return NextResponse.json(await draftIntroduction(challenge,startup)); }
     if (operation === "meeting") return NextResponse.json(await extractMeeting(z.string().min(20).max(20000).parse((await request.json()).notes)));
     if (operation === "narrative") { const body = await request.json(); return NextResponse.json({ narrative: await draftResult(body.baseline, body.target, body.actual, body.unit) }); }
     const body = await request.json().catch(() => ({}));
@@ -38,6 +41,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       case "result": result = submitResult(body, pocId); break;
       case "review": result = reviewResult(pocId); break;
       case "reject-result": result = rejectResult(pocId); break;
+      case "close": result = closePoc(z.string().parse(body.reason), pocId); break;
       case "narrative-save": result = saveNarrative(z.string().parse(body.narrative), pocId); break;
       case "commercial": result = advanceCommercial(z.string().parse(body.stage), pocId, { value: z.number().nullable().optional().parse(body.value) ?? null, currency: z.string().nullable().optional().parse(body.currency) ?? null, evidence: z.string().nullable().optional().parse(body.evidence) ?? null }); break;
       case "profile": result = saveStartupProfile(body); break;
