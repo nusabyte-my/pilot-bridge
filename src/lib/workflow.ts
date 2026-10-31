@@ -16,7 +16,7 @@ export function saveChallenge(input: { title: string; capabilities: string[]; co
     const challenge = data.challenges[0];
     Object.assign(challenge, input, { rawProblem, structuredBy, approved: true });
     const poc = data.pocs[0]; poc.status = "Matching"; syncChallenge(data, poc);
-    data.matches = [...data.startups].sort((a,b)=>matchCriteria(b).total-matchCriteria(a).total).slice(0,3).map((startup,index)=>{const criteria=matchCriteria(startup);return {id:crypto.randomUUID(),challengeId:challenge.id,startupId:startup.id,criteria:Object.entries(criteria).filter(([key])=>key!=="total").map(([label,score])=>({label,score:score as number,max:({capability:40,industry:20,maturity:15,deployment:15,availability:10} as Record<string,number>)[label]})),reasons:startup.reasons,risks:startup.gaps,rank:index+1};});
+    data.matches = [...data.startups].sort((x,y)=>matchCriteria(y,challenge).total-matchCriteria(x,challenge).total).slice(0,3).map((startup,index)=>{const criteria=matchCriteria(startup,challenge);return {id:crypto.randomUUID(),challengeId:challenge.id,startupId:startup.id,criteria:Object.entries(criteria).filter(([key])=>key!=="total").map(([label,score])=>({label,score:score as number,max:({capability:40,industry:20,maturity:15,deployment:15,availability:10} as Record<string,number>)[label]})),reasons:startup.reasons,risks:startup.gaps,rank:index+1};});
     recordActivity(data, poc.id, "Structured challenge requirements approved for matching");
     return { ok: true, message: "Challenge approved. Explainable matches are ready." };
   });

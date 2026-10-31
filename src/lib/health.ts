@@ -20,5 +20,6 @@ export function nextBestAction(poc: Poc, milestones: Milestone[]): string {
   const next = milestones.filter(m => m.status !== "Completed").sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
   if (poc.status === "Active" && next) return `Prepare “${next.title}” with ${next.owner} by ${next.dueDate}.`;
   if (poc.status === "ResultSubmitted") return "Review the measured result and supporting evidence.";
+  if (poc.status === "Completed") return "Record the commercial decision separately from the technical result.";
   return "Capture the measured outcome and commercial next step.";
 }
