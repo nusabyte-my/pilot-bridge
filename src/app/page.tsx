@@ -1,7 +1,73 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, CheckCircle2, CircleDashed, FileStack, Info } from "lucide-react";
-import { getData } from "@/lib/store";
-import { calculateHealth, nextBestAction } from "@/lib/health";
-import { ChallengeCreator } from "@/components/challenge-creator";
-export const dynamic="force-dynamic";
-export default function ChallengesPage(){const data=getData();const active=data.challenges.filter(c=>c.status!=="Completed").length;const completed=data.pocs.filter(p=>p.status==="Completed").length;return <><div className="breadcrumb">Startup ASEAN <span style={{margin:"0 8px"}}>/</span> Challenges</div><div className="page-heading"><div><div className="eyebrow">Corporate innovation pipeline</div><h1>Good morning, Aisha.</h1><p className="subtitle">Move every introduction towards a clear, measurable next step.</p></div><ChallengeCreator/></div><section className="stats" aria-label="Challenge summary"><div className="stat"><div className="stat-label">Active challenges <Info size={12}/></div><div className="stat-value">{active}</div><div className="stat-note">Across the corporate pipeline</div></div><div className="stat"><div className="stat-label">Curated startups</div><div className="stat-value">{data.startups.length}</div><div className="stat-note">Across 5 ASEAN countries</div></div><div className="stat"><div className="stat-label">Active POCs</div><div className="stat-value">{data.pocs.filter(p=>["Active","ResultSubmitted"].includes(p.status)).length}</div><div className="stat-note">Execution and outcome review</div></div><div className="stat"><div className="stat-label">Verified outcomes</div><div className="stat-value">{completed}</div><div className="stat-note">Measured, reviewed POCs</div></div></section><section className="card"><div className="card-header"><div><h2>Challenge pipeline</h2><p className="subtitle">Requirements, ownership and POC execution in one view.</p></div><span className="badge">{data.challenges.length} challenges</span></div><div className="table-wrap"><table className="table"><thead><tr><th>Corporate challenge</th><th>POC partner</th><th>Stage</th><th>Next best action</th><th><span className="sr-only">Open</span></th></tr></thead><tbody>{data.challenges.map(challenge=>{const poc=data.pocs.find(p=>p.challengeId===challenge.id)!;const startup=data.startups.find(s=>s.id===poc.startupId);const health=calculateHealth(poc,data.milestones);return <tr key={challenge.id}><td><Link href={`/challenges/${challenge.id}`} style={{fontWeight:600}}>{challenge.title}</Link><div className="tiny muted" style={{marginTop:5}}>Meridian Logistics · {challenge.country}</div></td><td>{startup?<div className="startup-identity"><div className="startup-logo" style={{background:startup.color,width:29,height:29,fontSize:10}}>{startup.initials}</div><span>{startup.name}</span></div>:<span className="muted">Not selected</span>}</td><td><span className={`badge ${health==="At Risk"?"amber":health==="Stalled"?"red":challenge.status==="Completed"?"green":""}`}>{poc.status==="Active"||poc.status==="ResultSubmitted"?health:challenge.status}</span></td><td style={{maxWidth:260}}><span className="tiny muted">{nextBestAction(poc,data.milestones)}</span></td><td><Link className="icon-button" aria-label={`Open ${challenge.title}`} href={`/challenges/${challenge.id}`}><ArrowUpRight size={16}/></Link></td></tr>;})}</tbody></table></div></section><div className="dashboard-lower"><section className="card"><div className="card-header"><div><h2>Execution signals</h2><p className="subtitle">Where a programme manager can unblock progress.</p></div><FileStack size={18} color="var(--green)"/></div><div className="card-body">{data.pocs.filter(p=>p.startupId).map(poc=>{const challenge=data.challenges.find(c=>c.id===poc.challengeId)!;return <Link href={`/poc?id=${poc.id}`} className="signal-row" key={poc.id}><div><h3>{challenge.title}</h3><p className="tiny muted" style={{marginTop:5}}>{nextBestAction(poc,data.milestones)}</p></div><ArrowRight size={15}/></Link>;})}{!data.pocs.some(p=>p.startupId)&&<div className="empty">Confirm a partner to begin tracking POC execution.</div>}</div></section><section className="next-action"><div className="eyebrow" style={{margin:0}}>Connection to outcome</div><p>{completed?`${completed} POC${completed===1?" has":"s have"} verified results ready for ecosystem reporting.`:"Complete a measured result and evidence review to publish your first ecosystem outcome."}</p><Link href="/outcomes" className="button">View ecosystem outcomes<ArrowUpRight size={14}/></Link><hr className="divider"/><div className="check-row"><CheckCircle2 size={14} color="var(--green)"/>Deterministic health and eligibility</div><div className="check-row"><CircleDashed size={14} color="var(--green)"/>Evidence before reported impact</div></section></div></>;}
+import { ArrowRight, ArrowUpRight, BadgeCheck, Check, CircleDashed, FileCheck2, Network, ShieldCheck, Sparkles, Waypoints } from "lucide-react";
+export const metadata = { title: "PilotBridge — From connection to verified outcome", description: "PilotBridge turns corporate challenges into explainable startup matches, structured cross-border POCs, and evidence-backed commercial outcomes." };
+const steps = [
+  { n: "01", title: "Challenge", body: "A corporate problem becomes measurable requirements, with missing facts kept visible." },
+  { n: "02", title: "Match", body: "Top three startups ranked on reproducible criteria, with evidence, risks and first-meeting questions." },
+  { n: "03", title: "Pilot", body: "Both parties approve one charter, then execute milestones, owners, deadlines and actions." },
+  { n: "04", title: "Outcome", body: "Measured results require evidence. Commercial decisions are tracked separately—never inferred." },
+];
+export default function LandingPage() {
+  return <div className="landing">
+    <header className="landing-nav"><Link href="/" className="brand"><span className="brand-mark"><Waypoints size={17}/></span>PilotBridge<span className="muted tiny" style={{fontWeight:400}}>/ ASEAN</span></Link><nav aria-label="Landing navigation"><a href="#how">How it works</a><a href="#trust">Trust</a><a href="#marketplace">Marketplace</a></nav><div className="landing-actions"><Link className="button small" href="/login">Sign in</Link><Link className="button small primary" href="/app">Open demo<ArrowRight size={13}/></Link></div></header>
+    <main>
+      <section className="landing-hero">
+        <div className="landing-hero-copy">
+          <div className="eyebrow">Execution infrastructure for Startup ASEAN</div>
+          <h1>Introductions are easy.<br/><span>Outcomes are the hard part.</span></h1>
+          <p>PilotBridge carries a corporate challenge through explainable startup matching, a jointly approved cross-border POC, and a measured result backed by evidence.</p>
+          <div className="landing-cta"><Link className="button primary" href="/app">Explore the working demo<ArrowRight size={15}/></Link><a className="button" href="#how">See the workflow</a></div>
+          <p className="landing-note"><CircleDashed size={12}/>Fictional data · No signup required for the demo</p>
+        </div>
+        <div className="landing-panel" aria-label="Product preview">
+          <div className="landing-panel-head"><span>POC workspace</span><span className="badge green"><span className="status-dot"/>On Track</span></div>
+          <div className="landing-panel-body">
+            <div className="landing-panel-title">Last-Mile Delivery Optimisation</div>
+            <p className="tiny muted">Meridian Logistics × Routify AI · Singapore → Malaysia</p>
+            <div className="landing-metrics"><div><span>Baseline</span><strong>11%</strong></div><div><span>Target</span><strong>&lt;7%</strong></div><div className="active"><span>Actual</span><strong>6.8%</strong></div></div>
+            <div className="landing-flow">
+              <div><Check size={11}/>Challenge approved</div>
+              <div><Check size={11}/>Partner confirmed</div>
+              <div><Check size={11}/>Charter approved</div>
+              <div className="current"><span/>Result review</div>
+            </div>
+            <div className="landing-callout"><Sparkles size={14}/><div><strong>Next best action</strong><p>Verify the measurement evidence before recording the commercial decision.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="landing-strip" aria-label="Product principles">
+        <div><strong>1</strong><span>challenge</span></div><div><strong>3</strong><span>explained matches</span></div><div><strong>2</strong><span>charter approvals</span></div><div><strong>1</strong><span>verified outcome</span></div><div className="landing-strip-note">Every introduction ends with an owner, a deadline and a measurable next step.</div>
+      </section>
+
+      <section className="landing-section" id="how">
+        <div className="landing-section-head"><div><div className="eyebrow">The loop</div><h2>One path from problem to proof.</h2></div><p>AI drafts. Deterministic logic controls eligibility, locks, health and reported metrics. People approve.</p></div>
+        <div className="landing-steps">{steps.map(step => <div className="landing-step" key={step.n}><span>{step.n}</span><h3>{step.title}</h3><p>{step.body}</p></div>)}</div>
+      </section>
+
+      <section className="landing-section landing-split" id="trust">
+        <div><div className="eyebrow">Trust by design</div><h2>Evidence over activity.</h2><p className="landing-lede">Most ecosystem platforms stop at the introduction. PilotBridge records what happened next—and refuses to overstate it.</p>
+          <ul className="landing-checklist">
+            <li><ShieldCheck size={16}/><div><strong>Deterministic decisions</strong><span>Eligibility, partner locks, POC health and metrics never come from a model.</span></div></li>
+            <li><BadgeCheck size={16}/><div><strong>Grounded AI</strong><span>Every generated claim is limited to supplied evidence and requires human review.</span></div></li>
+            <li><FileCheck2 size={16}/><div><strong>Verified outcomes</strong><span>Completion needs measurements and evidence. Commercial success is recorded separately.</span></div></li>
+          </ul>
+        </div>
+        <div className="landing-quote"><div className="eyebrow">The product test</div><blockquote>“Did this connection produce a verified POC and a real commercial next step?”</blockquote><p>If the answer is no, the dashboard should say so.</p></div>
+      </section>
+
+      <section className="landing-section" id="marketplace">
+        <div className="landing-section-head"><div><div className="eyebrow">Ecosystem marketplace</div><h2>Fit with a purpose.</h2></div><p>Startup and investor profiles are matched on transparent criteria—then converted into a bounded first-phase POC idea.</p></div>
+        <div className="landing-market">
+          <div className="landing-market-card"><div className="startup-logo" style={{background:"#e8e6ff"}}>RO</div><div><strong>Routify AI</strong><span>Malaysia · Logistics intelligence</span></div><span className="badge green">Strong fit</span></div>
+          <div className="landing-market-card"><div className="startup-logo" style={{background:"#dff5eb"}}>NM</div><div><strong>Nexus Mobility</strong><span>Indonesia · Mobility systems</span></div><span className="badge amber">Clarify evidence</span></div>
+          <div className="landing-market-card"><div className="startup-logo" style={{background:"#fff0d9"}}>FL</div><div><strong>Fleetly</strong><span>Malaysia · Fleet operations</span></div><span className="badge">In active POC</span></div>
+        </div>
+        <div className="landing-market-cta"><Network size={17}/><span>Sector, stage and ticket alignment are eligibility gates. Scores indicate fit—not predicted funding.</span><Link href="/app/marketplace">Browse marketplace<ArrowUpRight size={13}/></Link></div>
+      </section>
+
+      <section className="landing-final"><div><div className="eyebrow">Startup ASEAN</div><h2>See the complete connection-to-outcome loop.</h2><p>The demo includes a corporate challenge, five fictional startups, investor matching, and a POC ready to execute.</p></div><Link className="button primary" href="/app">Open the demo<ArrowRight size={15}/></Link></section>
+    </main>
+    <footer className="landing-footer"><div className="brand"><span className="brand-mark"><Waypoints size={15}/></span>PilotBridge</div><p>Built for Startup ASEAN · Fictional demonstration data</p><div><Link href="/login">Sign in</Link><Link href="/app">Demo</Link></div></footer>
+  </div>;
+}
