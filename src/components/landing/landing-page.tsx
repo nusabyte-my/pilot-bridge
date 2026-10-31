@@ -102,7 +102,7 @@ export function LandingPage() {
         </section>
 
         <section className="mx-auto max-w-6xl px-5 pb-20 sm:px-8">
-          <p className="text-sm font-medium text-teal">POC pipeline</p>
+          <h2 className="font-display text-2xl font-medium tracking-[-0.03em]">POC pipeline</h2>
           <ol className="mt-5 flex flex-col gap-0 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1 sm:gap-y-3">
             {PIPELINE.map((stage, index) => (
               <li key={stage} className="flex items-center gap-2 text-[15px] text-navy">
