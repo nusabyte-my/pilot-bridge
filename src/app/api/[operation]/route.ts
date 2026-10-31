@@ -2,14 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { structureChallenge, extractMeeting, draftResult, explainMatches, draftIntroduction } from "@/lib/ai";
 import { activatePoc, advanceCommercial, approveCharter, editCharter, generateCharter, makeOverdue, closePoc, rejectResult, reviewResult, saveNarrative, saveChallenge, saveMeetingActions, selectPartner, submitResult, toggleAction, toggleReadiness } from "@/lib/workflow";
 import { getData, resetData } from "@/lib/store";
+import { orchestratePoc } from "@/lib/agents";
 import { matchCriteria } from "@/lib/matching";
 import { inputSchema } from "@/lib/schemas";
 import { convertPocIdea, requestIntroduction, savePocIdea, saveStartupProfile } from "@/lib/marketplace";
 import { z } from "zod";
+import { allowRequest, requestIdentity } from "@/lib/rate-limit";
 
+const aiOperations = new Set(["structure", "explain-matches", "introduction", "agent-brief", "meeting", "narrative"]);
 const allowedFiles = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
 export async function POST(request: NextRequest, { params }: { params: Promise<{ operation: string }> }) {
   const { operation } = await params;
+  if (aiOperations.has(operation) && !allowRequest(`${requestIdentity(request)}:${operation}`, 8, 60_000)) return NextResponse.json({ ok: false, message: "Too many AI requests. Try again in a minute." }, { status: 429 });
+  if (Number(request.headers.get("content-length") || 0) > 12 * 1024 * 1024) return NextResponse.json({ ok: false, message: "Request too large." }, { status: 413 });
   try {
     if (operation === "structure") {
       const form = await request.formData();
@@ -22,6 +27,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
     if (operation === "explain-matches") { const body = await request.json(); const data = getData(); const challenge = data.challenges.find(c => c.id === z.string().parse(body.challengeId)); if (!challenge) throw new Error("Challenge not found."); const startups = [...data.startups].sort((a,b)=>matchCriteria(b).total-matchCriteria(a).total).slice(0,3); return NextResponse.json(await explainMatches(challenge,startups)); }
     if (operation === "introduction") { const body = await request.json(); const data = getData(); const challenge = data.challenges.find(c => c.id === z.string().parse(body.challengeId)); const startup = data.startups.find(s => s.id === z.string().parse(body.startupId)); if (!challenge || !startup) throw new Error("Challenge or startup not found."); return NextResponse.json(await draftIntroduction(challenge,startup)); }
+    if (operation === "agent-brief") { const body = await request.json(); const data = getData(); const challenge = data.challenges.find(c => c.id === z.string().parse(body.challengeId)); const startup = data.startups.find(s => s.id === z.string().parse(body.startupId)); const poc = data.pocs.find(p => p.id === z.string().parse(body.pocId)); if (!challenge || !startup || !poc) throw new Error("Challenge, startup or POC not found."); return NextResponse.json(await orchestratePoc(challenge, startup, poc)); }
     if (operation === "meeting") return NextResponse.json(await extractMeeting(z.string().min(20).max(20000).parse((await request.json()).notes)));
     if (operation === "narrative") { const body = await request.json(); return NextResponse.json({ narrative: await draftResult(body.baseline, body.target, body.actual, body.unit) }); }
     const body = await request.json().catch(() => ({}));
