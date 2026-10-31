@@ -268,12 +268,87 @@ sequenceDiagram
 | **POC Architect** (`poc-architect`) | POC design specialist | Drafts a bounded 12-week charter: thesis, in-scope requirements, strict out-of-scope guardrails, and 3-phase milestones (`Align`, `Prove`, `Decide`). |
 | **Orchestrator Synthesis** (`orchestrator`) | Sceptical programme manager | Synthesises the three specialist findings into an executive decision memo with mandatory go/no-go conditions and readiness classification (`Ready for first meeting`, `Needs clarification`, `Not ready`). |
 
+```typescript
+// src/lib/agents.ts: Parallel agent orchestration
+export async function orchestratePoc(challenge: Challenge, startup: Startup, poc: Poc) {
+  const input = brief(challenge, startup, poc);
+  const [capability, delivery, commercial] = await Promise.all([
+    callAgent("capability-scout", "capability evidence analyst", ..., input),
+    callAgent("delivery-risk", "delivery and cross-border risk analyst", ..., input),
+    callAgent("poc-architect", "POC design specialist", ..., input),
+  ]);
+  const combined = JSON.stringify({
+    capability: capability.value,
+    delivery: delivery.value,
+    plan: commercial.value,
+    failedAgents: [capability, delivery, commercial].filter(i => !i.value).map(i => i.trace.agent)
+  });
+  const synthesis = await callAgent("orchestrator", "orchestrator and sceptical programme manager", ..., combined);
+  // Return structured, audit-traced brief
+}
+```
+
+#### Example: Synthesized Advisory Agent Brief
+
+```json
+{
+  "id": "brief-8f2a1b9c",
+  "pocId": "poc-meridian-routify",
+  "startupId": "startup-routify",
+  "challengeId": "challenge-last-mile",
+  "generatedBy": "Gemma 4 (gemma-4-31b-it)",
+  "reviewStatus": "Draft",
+  "assessment": {
+    "capabilityEvidence": [
+      "Automated multi-fleet routing engine deployed in Singapore",
+      "Sub-second re-routing on live traffic telemetry"
+    ],
+    "deliveryRisks": [
+      "Requires GPS vehicle telemetry access via corporate API",
+      "Driver app adoption during initial route adjustments"
+    ],
+    "missingEvidence": [
+      "Documented cross-border SLA compliance in Malaysia"
+    ],
+    "firstMeetingQuestions": [
+      "Which comparable logistics deployments in Southeast Asia can you evidence?",
+      "Who owns data pipeline integration on the startup engineering team?"
+    ],
+    "recommendation": "Clarify"
+  },
+  "plan": {
+    "thesis": "Validate Routify AI routing algorithm on 50 commercial vehicles in Johor Bahru.",
+    "scope": "Phase 1 telematics ingestion and dynamic route re-optimization.",
+    "outOfScope": ["Fleet-wide hardware replacement", "Unvalidated telematics API writes"],
+    "successMetric": ">= 12% reduction in empty vehicle miles over 30 days",
+    "milestones": [
+      { "phase": "Align", "outcome": "Confirm telemetry schema, data residency, and baseline", "owner": "Programme manager", "dueInDays": 14 },
+      { "phase": "Prove", "outcome": "Run 30-day parallel routing test with live telemetry", "owner": "Delivery owner", "dueInDays": 56 },
+      { "phase": "Decide", "outcome": "Evaluate fuel saving evidence and commercial proposal", "owner": "Corporate sponsor", "dueInDays": 84 }
+    ],
+    "risks": ["Driver training latency", "Cellular dead zones along rural delivery corridors"]
+  },
+  "synthesis": {
+    "summary": "Technical fit is strong, but data security and local integration ownership must be formally confirmed.",
+    "conditions": [
+      "Confirm vehicle telematics API read-only connectivity",
+      "Designate a local operations lead in Johor Bahru"
+    ],
+    "questions": [
+      "What is the system fallback during cellular connection loss?",
+      "Can all telemetry data be processed strictly within Malaysian data residency boundaries?"
+    ],
+    "nextAction": "Schedule a technical fit and data residency review before finalizing charter.",
+    "readiness": "Ready for first meeting"
+  }
+}
+```
+
 **Human-in-the-Loop Governance:**
 - The multi-agent brief is purely **advisory**.
 - It is saved with `reviewStatus: "Draft"`.
 - A programme manager or corporate sponsor must explicitly review and mark it **Approved** or **Rejected**.
 - AI recommendations can never transition POC pipeline stages, modify partner eligibility, or approve commercial charters automatically.
-
 ### 4. Schema validation and error handling
 
 Every AI call is strictly bounded by versioned Zod schemas (`src/lib/schemas.ts` and `src/lib/agents.ts`):
@@ -291,6 +366,24 @@ Every inference execution records an immutable audit entry in the database (`src
 - `latencyMs`: Network and generation latency in milliseconds.
 - `attempts`: Number of attempts required to reach a validated schema.
 - **Key security:** API keys remain strictly server-side. Audit records contain only a one-way 12-character SHA-256 key fingerprint (`keyFingerprint()`), never the raw credential.
+
+#### Example: Immutable AI Audit Log Record
+
+```json
+{
+  "id": "run-9c4e2a1b",
+  "purpose": "agent:capability-scout",
+  "promptVersion": "capability-scout-v1",
+  "schemaVersion": "capability-scout-v1",
+  "model": "gemma:gemma-4-31b-it",
+  "inputDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "status": "succeeded",
+  "attempts": 1,
+  "errorCode": null,
+  "latencyMs": 1420,
+  "createdAt": "2026-10-31T07:30:45.000Z"
+}
+```
 ---
 
 ## Screens
