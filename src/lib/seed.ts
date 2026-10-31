@@ -1,0 +1,37 @@
+import type { AppData, Challenge } from "./types";
+
+export const demoChallenge: Challenge = {
+  id: "challenge-delivery", title: "Last-Mile Delivery Optimisation", rawProblem: "We want to reduce late deliveries from an 11% baseline to below 7% during a 12-week pilot at our Singapore distribution centre, using existing order and vehicle-location data.",
+  status: "Draft", country: "Singapore", site: "Singapore Distribution Centre", baseline: null, target: null, unit: null, duration: null, budget: null,
+  constraints: [], capabilities: [], missing: [], approved: false, createdAt: new Date().toISOString(), pocId: "poc-delivery", startupId: null, structuredBy: null,
+};
+
+export const marketplaceInvestors = [
+  { id: "investor-archipelago", name: "Archipelago Ventures", type: "Early-stage VC", country: "Singapore", sectors: ["Logistics intelligence", "Fleet operations", "Mobility systems"], stages: ["Early production", "Production ready"], ticketMin: 250000, ticketMax: 1000000, thesis: "B2B infrastructure that makes ASEAN supply chains more efficient.", portfolioSupport: ["Corporate introductions", "Singapore market entry", "Pilot design"], verified: true, initials: "AV" },
+  { id: "investor-southern", name: "Southern Cross Capital", type: "Corporate venture", country: "Malaysia", sectors: ["Logistics intelligence", "Fleet operations", "Operations software"], stages: ["Production ready"], ticketMin: 500000, ticketMax: 2000000, thesis: "Enterprise operations platforms with validated regional demand.", portfolioSupport: ["Enterprise procurement", "Regional distribution"], verified: true, initials: "SC" },
+  { id: "investor-impact", name: "Southeast Impact Fund", type: "Impact investor", country: "Indonesia", sectors: ["Mobility systems", "Computer vision", "Logistics intelligence"], stages: ["Early production"], ticketMin: 100000, ticketMax: 500000, thesis: "Measurable efficiency and safer industrial operations across emerging ASEAN.", portfolioSupport: ["Impact measurement", "Local implementation partners"], verified: false, initials: "SI" },
+];
+
+export function seedData(): AppData {
+  return {
+    challenges: [demoChallenge], investors: marketplaceInvestors, pocIdeas: [], introductions: [],
+    organisations: [{ id: "org-meridian", name: "Meridian Logistics", type: "Corporate", country: "Singapore", sector: "Logistics" }, ...marketplaceInvestors.map(investor => ({ id: investor.id, name: investor.name, type: "Investor" as const, country: investor.country, sector: "Investment" }))],
+    users: [{ id: "user-aisha", organisationId: "org-meridian", role: "Programme manager", name: "Aisha Rahman" }, { id: "user-daniel", organisationId: "org-meridian", role: "Corporate", name: "Daniel Tan" }], matches: [],
+    startups: [
+      { id: "startup-routify", name: "Routify AI", country: "Malaysia", flag: "🇲🇾", sector: "Logistics intelligence", description: "Dynamic route planning for urban delivery fleets.", capabilities: ["Route optimisation", "Real-time dispatch", "Fleet analytics"], maturity: "Production ready", capacity: "Available for 12-week pilot", available: true, reasons: ["Direct route-optimisation capability", "Dedicated Singapore implementation team", "Supports order and GPS data ingestion"], gaps: ["Confirm vehicle-location API compatibility"], initials: "RO", color: "#e8e6ff", stage: "Early production", seeking: "US$250k–500k", markets: ["Singapore", "Malaysia"], traction: "3 logistics pilots · 2 production deployments", verified: true },
+      { id: "startup-fleetly", name: "Fleetly", country: "Malaysia", flag: "🇲🇾", sector: "Fleet operations", description: "Fleet visibility and delivery intelligence for ASEAN operators.", capabilities: ["Fleet analytics", "Delivery tracking"], maturity: "Production ready", capacity: "Committed to an active POC", available: false, unavailableReason: "In active POC until December 2026", reasons: ["Strong regional fleet experience"], gaps: ["No capacity for this timeline"], initials: "FL", color: "#fff0d9", stage: "Production ready", seeking: "US$500k–1m", markets: ["Malaysia", "Singapore"], traction: "12 fleet operators · 4,000 connected vehicles", verified: true },
+      { id: "startup-nexus", name: "Nexus Mobility", country: "Indonesia", flag: "🇮🇩", sector: "Mobility systems", description: "Enterprise transport and demand prediction platform.", capabilities: ["Demand forecasting", "Route optimisation"], maturity: "Early production", capacity: "Available from November", available: true, reasons: ["Relevant optimisation engine", "Bahasa and English implementation support"], gaps: ["No demonstrated order-system integration", "Limited Singapore deployments"], initials: "NM", color: "#dff5eb", stage: "Early production", seeking: "US$100k–250k", markets: ["Indonesia", "Singapore"], traction: "2 paid pilots · 18% route efficiency gain", verified: false },
+      { id: "startup-locus", name: "LocusWorks", country: "Vietnam", flag: "🇻🇳", sector: "Operations software", description: "Regional workflow automation and field operations.", capabilities: ["Workflow automation", "Field support"], maturity: "Production ready", capacity: "Regional team available", available: true, reasons: ["Strong cross-border support"], gaps: ["Limited logistics case studies"], initials: "LW", color: "#e2efff", stage: "Production ready", seeking: "US$500k–1m", markets: ["Vietnam", "Singapore"], traction: "8 enterprise customers · 3 ASEAN markets", verified: true },
+      { id: "startup-sight", name: "Sightline", country: "Thailand", flag: "🇹🇭", sector: "Computer vision", description: "Visual inspection for industrial environments.", capabilities: ["Computer vision", "Anomaly detection"], maturity: "Early production", capacity: "Available", available: true, reasons: ["Relevant real-time AI capability"], gaps: ["Poor capability fit for route optimisation"], initials: "SL", color: "#ffe9e8", stage: "Early production", seeking: "US$100k–250k", markets: ["Thailand"], traction: "2 manufacturing pilots · early revenue", verified: false },
+    ],
+    pocs: [{ id: "poc-delivery", challengeId: "challenge-delivery", startupId: null, status: "Matching", charter: null, corporateApproved: false, startupApproved: false, createdAt: new Date().toISOString(), partnerSelectedAt: null, charterReviewAt: null, activatedAt: null, resultSubmittedAt: null, completedAt: null, lastActivityAt: new Date().toISOString(), readiness: { decisionMaker: true, localOwner: true, dataAccess: false, procurement: false, language: true, regulatory: false } }],
+    milestones: [
+      { pocId: "poc-delivery", id: "ms-1", title: "Data & systems workshop", owner: "Aisha Rahman", dueDate: "2026-11-06", critical: true, status: "Scheduled" },
+      { pocId: "poc-delivery", id: "ms-2", title: "Baseline validation", owner: "Daniel Tan", dueDate: "2026-11-20", critical: true, status: "Not started" },
+      { pocId: "poc-delivery", id: "ms-3", title: "Mid-pilot performance review", owner: "Aisha Rahman", dueDate: "2026-12-18", critical: false, status: "Not started" },
+    ],
+    actions: [{ id: "action-1", pocId: "poc-delivery", title: "Share anonymised order and GPS data schema", owner: "Daniel Tan", dueDate: "2026-11-04", status: "Open" }],
+    evidence: [], results: {},
+    activities: [{ id: "activity-1", pocId: null, text: "Fictional ASEAN demo workspace initialised", timestamp: new Date().toISOString(), type: "system" }],
+  };
+}
