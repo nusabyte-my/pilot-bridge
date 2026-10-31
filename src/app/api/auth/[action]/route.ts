@@ -3,6 +3,7 @@ import { z } from "zod";
 import { authenticate, clearSessionCookie, setSessionCookie, sessionFromRequest, findCredentialForUser } from "@/lib/auth";
 import { changePassword } from "@/lib/credentials";
 import { allowRequest, requestIdentity } from "@/lib/rate-limit";
+import { getData } from "@/lib/store";
 export async function POST(request: Request, { params }: { params: Promise<{ action: string }> }) {
   const { action } = await params;
   if (action === "logout") { await clearSessionCookie(); return NextResponse.json({ ok: true }); }
@@ -20,6 +21,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ act
       await setSessionCookie({ ...session, sessionVersion: updated.sessionVersion, expiresAt: Date.now() + 8 * 60 * 60 * 1000 });
       return NextResponse.json(result);
     } catch { return NextResponse.json({ ok: false, message: "Enter a valid current and new password." }, { status: 400 }); }
+  }
+  if (action === "demo") {
+    if (process.env.PILOTBRIDGE_DEMO_LOGIN !== "true") return NextResponse.json({ ok: false, message: "Demo access is not enabled." }, { status: 403 });
+    if (!allowRequest(`demo:${requestIdentity(request)}`, 5, 60_000)) return NextResponse.json({ ok: false, message: "Too many demo sessions. Try again in a minute." }, { status: 429 });
+    const user = getData().users.find(item => item.role === "Programme manager");
+    if (!user) return NextResponse.json({ ok: false, message: "Demo account unavailable." }, { status: 503 });
+    await setSessionCookie({ userId: user.id, organisationId: user.organisationId, role: user.role, expiresAt: Date.now() + 60 * 60 * 1000, sessionVersion: 999999 });
+    return NextResponse.json({ ok: true, role: user.role, demo: true });
   }
   if (action !== "login") return NextResponse.json({ ok: false, message: "Unknown action." }, { status: 404 });
   if (!allowRequest(`login:${requestIdentity(request)}`, 6, 60_000)) return NextResponse.json({ ok: false, message: "Too many sign-in attempts. Try again later." }, { status: 429 });
