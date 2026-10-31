@@ -1,6 +1,33 @@
 import type { Metadata } from "next";
+import { Bricolage_Grotesque, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
-export const metadata: Metadata = { title: "PilotBridge — From connection to verified outcome", description: "Turn corporate challenges into explainable startup matches, structured cross-border POCs, and evidence-backed outcomes." };
+
+const sans = Source_Sans_3({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const display = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: "PilotBridge — From introduction to outcome",
+  description: "Cross-border POC execution and evidence-backed outcomes for Startup ASEAN.",
+};
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}</body></html>;
+  return (
+    <html lang="en" className={`${sans.variable} ${display.variable}`}>
+      <body className={`${sans.className} antialiased`}>
+        <a className="skip-link" href="#main">
+          Skip to main content
+        </a>
+        {children}
+      </body>
+    </html>
+  );
 }

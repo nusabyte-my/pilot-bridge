@@ -4,8 +4,8 @@
 
 | Mode | Configuration | Behavior |
 |---|---|---|
-| Demo | `PILOTBRIDGE_DEMO=true` | No login; fictional data only |
-| Secured | unset or `false` | Signed session required for every page and mutation |
+| Showcase | `PILOTBRIDGE_AUTH` unset | No login page. `/login` redirects to `/challenges`. Workspace mutations are open for the hackathon demo. |
+| Secured | `PILOTBRIDGE_AUTH=true` | Signed session required for mutations. There is no `/login` screen in this build. |
 
 Production must **not** use demo mode with real corporate data.
 
@@ -46,8 +46,8 @@ The middleware enforces page access; the operation endpoint independently enforc
 ssh ecta-vps
 cd /opt/pilotbridge
 chmod 600 .env.production
-# set AUTH_SECRET and AUTH_USERS; remove PILOTBRIDGE_DEMO or set false
+# set AUTH_SECRET, AUTH_USERS, and PILOTBRIDGE_AUTH=true
 docker compose -f docker-compose.production.yml up -d --force-recreate pilotbridge
 ```
 
-Verify `/` redirects to `/login`, a bad password returns 401, and a Startup session cannot call `POST /api/reset`.
+Verify `/login` redirects to `/challenges`. With `PILOTBRIDGE_AUTH=true`, a missing session returns 401 and a Startup session cannot call `POST /api/reset`.
