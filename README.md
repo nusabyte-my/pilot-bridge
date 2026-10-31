@@ -2,42 +2,109 @@
 
 **From a corporate problem to a measured, evidence-backed cross-border POC.**
 
-PilotBridge is an execution copilot for Startup ASEAN. It turns unstructured corporate challenges into explainable startup matches, structured proof-of-concept projects, and verified commercial outcomes. AI drafts; deterministic application logic owns eligibility, locking, health, and reported metrics.
+PilotBridge is an execution copilot for Startup ASEAN. It turns unstructured corporate challenges into explainable startup matches, jointly approved proof-of-concept projects, and verified commercial outcomes.
+
+Live: **https://pilotbridge.nusabyte.cloud**
 
 > All seeded organisations, people, challenges, metrics, and outcomes are fictional demonstration data.
 
-## Product thesis
+---
 
-Ecosystem introductions usually disappear into chats and spreadsheets. PilotBridge makes every introduction end with a named partner, a bounded pilot, an owner, a deadline, and a measurable result. The product is designed around one question:
+## Why PilotBridge
 
-> Did this connection produce a verified POC and a real commercial next step?
+Ecosystem platforms stop at the introduction. PilotBridge asks the harder question:
 
-## Core workflow
+> **Did this connection produce a verified POC and a real commercial next step?**
 
-```mermaid
-flowchart LR
-    A[Challenge created] --> B[Gemma structures requirements]
-    B --> C[Human review and approval]
-    C --> D[Top-three explainable matches]
-    D --> E[Eligible partner confirmed]
-    E --> F[Introduction pack and POC charter]
-    F --> G[Both parties approve]
-    G --> H[Milestones, actions and evidence]
-    H --> I[Measured result reviewed]
-    I --> J[Commercial decision, tracked separately]
+Every introduction must end with a named partner, a bounded pilot, an owner, a deadline, and a measurable result.
+
+### Unique selling points
+
+| USP | What it means in practice |
+|---|---|
+| **Connection → outcome, not a directory** | The product covers challenge, matching, partner confirmation, charter, execution, evidence, completion, and commercial progression in one workflow. |
+| **Explainable, deterministic matching** | Scores are reproducible from visible criteria. AI may explain a match but can never change eligibility, rank, or lock state. |
+| **AI drafts, the application owns truth** | Eligibility, partner locks, pipeline transitions, charter approvals, POC health, and reported metrics are deterministic code. |
+| **Evidence before impact** | Completion requires baseline, target, actual, unit, period, and an evidence reference. Projections and investor interest are never counted as realised outcomes. |
+| **Commercial success tracked separately** | A technically successful POC never implies a contract. Signed status needs a value, currency, and evidence. |
+| **Gemma-first multimodal inference** | Gemma 4 reads text, PDFs, and images. DeepSeek is an automatic fallback for text-only tasks. |
+| **One-click demo, secured workspace** | Signed, HTTP-only sessions, role enforcement, and a rate-limited demo entry for evaluation. |
+
+---
+
+## Demo access
+
+### One-click demo
+
+1. Open **https://pilotbridge.nusabyte.cloud/login**
+2. Select **Enter one-click demo**
+3. Full programme-manager access to fictional data for one hour.
+
+The demo entry is controlled by `PILOTBRIDGE_DEMO_LOGIN=true`, issues a one-hour session, and is rate-limited to five sessions per minute per IP.
+
+### Demo account
+
+| Field | Value |
+|---|---|
+| Email | `demo@pilotbridge.demo` |
+| Password | `PilotBridge-Demo-2026!` |
+| Role | Programme manager |
+
+Change this password before public promotion. Create additional accounts with:
+
+```bash
+node scripts/create-account.mjs <email> <password-12+> [role]
 ```
 
-## Screens
+Roles: `Programme manager`, `Corporate`, `Startup`.
 
-| Route | Purpose |
-|---|---|
-| `/` | Challenges dashboard: every challenge, partner, stage, health, and next action |
-| `/challenges/[id]` | Challenge detail: approved requirements, gaps, top-three matches, partner selection |
-| `/poc?id=[pocId]` | POC workspace: overview, charter, execution, health, evidence, results, commercial outcome |
-| `/outcomes` | Ecosystem dashboard: funnel, all POC health, verified impact, country pairs, signed partnerships |
-| `/marketplace` | Startup and investor discovery with explainable investor matching |
-| `/marketplace/profile/[id]` | Editable startup profile and capability evidence |
-| `/marketplace/ideas/[id]` | First-phase POC ideation with 12-week proof plan and conversion to draft charter |
+---
+
+## How to use the product
+
+### 1. Create and structure a challenge
+
+- Open **Challenges → Create challenge**.
+- Enter a problem statement or upload a PDF/image brief.
+- Gemma drafts requirements, capabilities, constraints, baseline, target, and missing information.
+- Unknown values stay `null`; nothing enters matching until you approve the structured challenge.
+
+### 2. Review explainable matches
+
+- Open the challenge detail.
+- Inspect the deterministic top three, criterion scores, reasons, risks, and evidence gaps.
+- Optionally generate grounded first-meeting questions.
+- Select **Compare & select partner**, choose an eligible startup, and confirm.
+
+### 3. Approve the charter
+
+- Generate the warm-introduction pack and POC charter.
+- Edit the charter if needed; edits reset both approvals.
+- Corporate and startup each approve; then activate the POC.
+
+### 4. Execute and measure
+
+- Convert meeting notes into reviewed actions, decisions, documents, and unresolved issues.
+- Track milestones and owners. POC health is deterministic.
+- Submit baseline, target, actual result, unit, period, and evidence.
+- A reviewer verifies the result or returns it for changes.
+
+### 5. Record commercial progression
+
+```text
+No Decision → Commercial Negotiation → Contract Signed / Not Proceeding
+```
+
+Contract signing requires an explicit value, currency, and evidence reference. It is independent of technical completion.
+
+### 6. Use the marketplace
+
+- Browse startup and investor profiles.
+- Compare investor alignment across sector, stage, geography, ticket, and POC readiness.
+- Create a first-phase POC idea with a 12-week proof plan.
+- Convert an eligible idea into a separate draft challenge and charter.
+
+---
 
 ## POC pipeline
 
@@ -45,113 +112,125 @@ flowchart LR
 Draft → Matching → Partner Selected → Charter Review → Active → Result Submitted → Completed
 ```
 
-Implemented rules:
+| Rule | Behavior |
+|---|---|
+| Challenge approval | Required before matching |
+| Partner eligibility | Unavailable startups disabled; server rechecks |
+| Partner lock | Locked after activation |
+| Charter approval | Both parties required; edits reset approvals |
+| Result submission | Measurements and evidence required |
+| Result review | Verify → Completed, or request changes → Active |
+| Health precedence | `Completed` → `Stalled` → `At Risk` → `On Track` |
 
-- A challenge cannot enter matching until its structured requirements are approved.
-- Partner confirmation is blocked for unavailable startups and locked after activation.
-- Charter edits reset both approvals. Activation requires both parties.
-- Result submission requires baseline, target, actual, unit, measurement period, and evidence.
-- A reviewer can verify and complete, or return the result to **Active** for changes.
-- POC health uses deterministic precedence: `Completed` → `Stalled` → `At Risk` → `On Track`.
+---
 
-## Commercial progression
+## Inference architecture
 
-Tracked independently from technical POC success:
-
-```text
-No Decision → Commercial Negotiation → Contract Signed / Not Proceeding
+```mermaid
+flowchart LR
+    A[AI request] --> G[Gemma 4 via Gemini API]
+    G -->|success| J[JSON schema validation]
+    G -->|failure| D[DeepSeek via LiteLLM]
+    D --> J
+    J -->|valid| R[Reviewable draft]
+    J -->|invalid| X[Explicit failure]
+    R --> H[Human approval]
 ```
 
-- Technical success never implies commercial success.
-- **Contract Signed** requires an explicit value, currency, and evidence reference.
-- **Contract Signed** and **Not Proceeding** are terminal states.
-- Commercial metrics are excluded from verified impact until explicitly recorded.
+- **Primary:** Gemma 4 (`gemma-4-31b-it`, or `gemma-4-26b-a4b-it`), multimodal for text, PDFs, and images.
+- **Fallback:** DeepSeek `deepseek-v4.1-flash` for text-only generation when Gemma fails.
+- **Multimodal rule:** document extraction requires Gemma; it does not silently degrade to a text-only model.
+- **Validation:** every response is parsed against a versioned Zod schema.
+- **Audit:** provider, model, prompt version, schema version, SHA-256 input digest, attempts, status, and latency are recorded.
+- **Key safety:** API keys remain server-side. Audit records a one-way key fingerprint, never the key.
 
-## Matchmaking
+### Provider configuration
 
-Two distinct engines keep the product honest:
+```env
+GEMINI_API_KEY=...
+GEMMA_MODEL=gemma-4-31b-it
+LITELLM_API_KEY=...
+LITELLM_BASE_URL=https://litellm.rapidscreen.io/v1
+LITELLM_MODEL=deepseek-v4.1-flash
+```
 
-1. **Corporate challenge → startup** (`src/lib/matching.ts`) uses capability, industry, maturity, deployment, and availability. Scores are reproducible and displayed with reasons and evidence gaps.
-2. **Startup → investor** (`src/lib/marketplace-matching.ts`) adapts ALAND’s explainable weighted-matching architecture: sector thesis, stage, geography, ticket fit, and POC readiness, plus trust multipliers and hard eligibility gates.
+Without either key, the app returns an explicitly labelled deterministic demo draft.
 
-Investor matching ranks **thesis and pilot readiness**, not investment probability. It never presents a funding prediction.
+---
 
-## Gemma 4 integration
+## Screens
 
-Gemma is used through the Gemini API for:
+| Route | Purpose |
+|---|---|
+| `/` | Public marketing landing |
+| `/login` | Secure sign-in and one-click demo |
+| `/app` | Challenges dashboard |
+| `/app/challenges/[id]` | Requirements, matches, partner selection |
+| `/app/poc?id=[pocId]` | POC workspace: overview, charter, execution, results |
+| `/app/outcomes` | Funnel, health, verified impact, country pairs, signed partnerships |
+| `/app/marketplace` | Startup and investor discovery |
+| `/app/marketplace/profile/[id]` | Editable startup profile |
+| `/app/marketplace/ideas/[id]` | First-phase POC ideation and conversion |
 
-- Structured challenge extraction from text, PDFs, and images
-- Meeting notes to proposed actions
-- Result-card narrative drafting
+---
 
-Every AI path follows the same contract:
+## Security model
 
-- Server-side API key only
-- Versioned JSON schema and Zod validation
-- Unknown values remain `null`
-- Source references preserved
-- Draft content requires human review
-- Malformed output or provider failure cannot mutate workflow state
+- Signed HMAC-SHA256 sessions, HTTP-only and `Secure` in production
+- scrypt password hashing with per-user salt
+- Session-version revocation after password change
+- Middleware route protection plus independent role checks in the mutation API
+- Login and AI endpoints rate-limited per IP and operation
+- 12 MiB request cap; PDF/PNG/JPEG/WebP upload allowlist, 10 MiB each
+- Server-only provider and database credentials
+- Credentials persisted in the data volume with owner-only permissions
 
-Without `GEMINI_API_KEY`, the application uses an explicitly labelled offline demo extraction path. It does not pretend to be a live model response.
+Production boundary: the current database is SQLite inside a Docker volume. Use PostgreSQL, managed object storage, and an external identity provider before handling confidential corporate data. See `TECHNICAL_ARCHITECTURE.md` and `deploy/AUTH.md`.
+
+---
 
 ## Architecture
 
 ```mermaid
 flowchart LR
     U[Browser] --> N[Next.js App Router]
+    N --> A[Session and role checks]
     N --> W[Deterministic workflow services]
-    N --> A[Gemma adapter]
-    W --> S[(SQLite demo store)]
-    A --> G[Gemini API]
+    N --> I[Gemma → DeepSeek inference]
+    W --> S[(SQLite data volume)]
+    I --> G[Gemini API]
+    I --> D[LiteLLM / DeepSeek]
 ```
 
-- **Framework:** Next.js 16 App Router, React 19, TypeScript strict
-- **UI:** custom hairline design system; accessible labels, focus states, keyboard modal handling, mobile layouts
-- **Validation:** Zod at API and AI boundaries
-- **Persistence:** transactional SQLite for the self-contained hackathon demo
-- **AI:** `@google/genai` with JSON-schema responses
-- **Tests:** Vitest for deterministic rules
-- **Production path:** PostgreSQL, managed identity, private object storage, and queueing are specified in `TECHNICAL_ARCHITECTURE.md`
+- Next.js 16 App Router, React 19, TypeScript strict
+- Tailwind CSS 4 plus a custom hairline workspace design system
+- Zod validation at API and AI boundaries
+- Vitest for deterministic and security rules
+- Docker standalone deployment behind nginx with Let's Encrypt TLS
 
-## Data model
+---
 
-The demo persists:
-
-- Organisations, users, challenges, startup profiles, investors
-- Explainable match records with criteria, reasons, risks, and rank
-- POCs with lifecycle timestamps and health
-- Charter approvals, milestones, actions, readiness items
-- Evidence, measured results, and verified commercial outcomes
-- Append-only activity events
-- POC ideas and introduction requests
-
-## Run locally
+## Local development
 
 Requirements: Node.js 22+, pnpm 10+.
 
 ```bash
 pnpm install
+cp .env.example .env.local
 pnpm dev
 ```
 
-Open <http://localhost:3000>. The database is created at `data/pilotbridge.db` with fictional seed data.
+Open <http://localhost:3000>. Data is created at `data/pilotbridge.db`.
 
-### Live Gemma configuration
-
-```bash
-cp .env.example .env.local
-```
+For local evaluation without auth:
 
 ```env
-GEMINI_API_KEY=your_key
-GEMINI_MODEL=gemma-4-27b-it
-PILOTBRIDGE_DB=./data/pilotbridge.db
+PILOTBRIDGE_DEMO=true
 ```
 
-Confirm the exact model identifier available to your API key.
+`PILOTBRIDGE_DEMO=true` disables login checks. Never use it with real data.
 
-## Quality checks
+### Quality checks
 
 ```bash
 pnpm lint
@@ -160,37 +239,56 @@ pnpm test
 pnpm build
 ```
 
-Verified browser path:
+### Create an account
 
-1. Challenge creation and AI structuring
-2. Human review and approval
-3. Explainable top-three matching
-4. Partner confirmation
-5. Joint charter approval and activation
-6. Meeting notes → reviewed actions
-7. Deterministic health transition
-8. Result submission → review rejection → resubmission
-9. Evidence verification and completion
-10. Commercial negotiation → evidence-backed contract signing
-11. Terminal-state rejection
-12. Marketplace profile edit → investor matching → POC ideation → draft charter conversion
+```bash
+node scripts/create-account.mjs demo@example.com 'A-strong-password-2026!' 'Programme manager'
+```
 
-## Demo reset
+---
 
-Use **Reset demo** on the Outcomes page to restore the fictional seed state. This is a demo operation, not a production recovery mechanism.
+## Deployment
 
-## Security and demo boundary
+Production runs as a Docker container on the Hostinger VPS behind nginx.
 
-- No production authentication is implemented. Do not use real confidential corporate data.
-- AI and database credentials remain server-side.
-- Uploads are limited to PDF/PNG/JPEG/WebP and 10 MiB.
-- Generated content is never auto-approved.
-- Production requirements—OIDC authentication, tenant authorization, retention policy, private evidence storage, rate limits, and restore testing—are documented in `TECHNICAL_ARCHITECTURE.md`.
+```bash
+scp -r src public scripts ecta-vps:/opt/pilotbridge/
+ssh ecta-vps "cd /opt/pilotbridge && docker compose -f docker-compose.production.yml up -d --build"
+```
+
+Operational runbooks:
+
+- `deploy/README.md` — deployment, health, backup
+- `deploy/AUTH.md` — authentication and roles
+- `deploy/AGENTS.md` — multi-agent inference and credential handling
+
+Health check:
+
+```bash
+curl -fsS https://pilotbridge.nusabyte.cloud/api/health
+```
+
+---
+
+## Verified browser path
+
+1. Public landing → login
+2. One-click demo session
+3. Challenge creation and AI structuring
+4. Human approval and explainable top-three matching
+5. Partner confirmation and joint charter approval
+6. Activation, meeting actions, deterministic health transition
+7. Result submission, review rejection, resubmission, verification
+8. Commercial negotiation and evidence-backed contract signing
+9. Marketplace profile → investor matching → POC ideation → draft charter
+10. Aggregate outcomes dashboard
+
+---
 
 ## Repository
 
 <https://github.com/nusabyte-my/pilot-bridge.git>
 
-## License
+## Licence
 
-Hackathon prototype. Add a license before commercial distribution.
+See `LICENSE`.

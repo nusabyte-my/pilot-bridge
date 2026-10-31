@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import { getLlmClient, llmModel } from "./llm";
+import { deepseekModel, gemmaModel, generateJson, providerStatus } from "./llm";
 import { recordActivity, recordAiRun, updateData } from "./store";
 import type { Challenge, Poc, Startup } from "./types";
 
@@ -30,8 +30,8 @@ const synthesisSchema = z.object({
 export type SpecialistAssessment = z.infer<typeof assessmentSchema>;
 export type PocPlanDraft = z.infer<typeof pocPlanSchema>;
 export type OrchestratorSynthesis = z.infer<typeof synthesisSchema>;
-export interface AgentTrace { agent: string; role: string; status: "succeeded" | "failed" | "fallback"; durationMs: number; output?: unknown; error?: string; }
-export interface OrchestrationResult { generatedBy: "deepseek-v4.1-flash" | "Deterministic fallback"; trace: AgentTrace[]; assessment: SpecialistAssessment; plan: PocPlanDraft; synthesis: OrchestratorSynthesis; }
+export interface AgentTrace { agent: string; role: string; status: "succeeded" | "failed" | "fallback"; durationMs: number; provider?: string; model?: string; output?: unknown; error?: string; }
+export interface OrchestrationResult { generatedBy: string; trace: AgentTrace[]; assessment: SpecialistAssessment; plan: PocPlanDraft; synthesis: OrchestratorSynthesis; }
 
 const brief = (challenge: Challenge, startup: Startup, poc: Poc) => JSON.stringify({
   challenge: { title: challenge.title, outcome: challenge.rawProblem, capabilities: challenge.capabilities, constraints: challenge.constraints, baseline: challenge.baseline, target: challenge.target, unit: challenge.unit, duration: challenge.duration, country: challenge.country },
@@ -40,32 +40,24 @@ const brief = (challenge: Challenge, startup: Startup, poc: Poc) => JSON.stringi
 });
 
 async function callAgent<T>(agent: string, role: string, instruction: string, schema: z.ZodType<T>, jsonSchema: object, input: string): Promise<{ value: T | null; trace: AgentTrace }> {
-  const started = Date.now(); const client = getLlmClient();
+  const started = Date.now();
   const baseTrace = { agent, role };
-  if (!client) {
-    recordAiRun({ purpose: `agent:${agent}`, promptVersion: `${agent}-v1`, schemaVersion: `${agent}-v1`, model: llmModel(), inputDigest: createHash("sha256").update(input).digest("hex"), status: "fallback", attempts: 0, errorCode: "no_api_key", latencyMs: 0 });
+  const providers = providerStatus();
+  if (!providers.primary && !providers.fallback) {
+    recordAiRun({ purpose: `agent:${agent}`, promptVersion: `${agent}-v1`, schemaVersion: `${agent}-v1`, model: "unconfigured", inputDigest: createHash("sha256").update(input).digest("hex"), status: "fallback", attempts: 0, errorCode: "no_api_key", latencyMs: 0 });
     return { value: null as T, trace: { ...baseTrace, status: "fallback", durationMs: 0, error: "no_api_key" } };
   }
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      const completion = await client.chat.completions.create({
-        model: llmModel(), temperature: 0.1, max_tokens: 1400,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: `You are the ${role} in a POC due-diligence team. Use ONLY supplied evidence. Never invent capabilities, customers, metrics, funding, or commitments. Return a single JSON object matching this schema exactly: ${JSON.stringify(jsonSchema)}. Unknown evidence belongs in missing fields, never fabricated.` },
-          { role: "user", content: `${instruction}\n\nEVIDENCE\n${input}` },
-        ],
-      });
-      const content = completion.choices[0]?.message?.content;
-      if (!content) throw new Error("EMPTY_RESPONSE");
-      const value = schema.parse(JSON.parse(content));
+      const result = await generateJson(`You are the ${role} in a POC due-diligence team. Use ONLY supplied evidence. Never invent capabilities, customers, metrics, funding, or commitments. Unknown evidence belongs in missing fields, never fabricated.`, `${instruction}\n\nEVIDENCE\n${input}`, jsonSchema);
+      const value = schema.parse(JSON.parse(result.content));
       const durationMs = Date.now() - started;
-      recordAiRun({ purpose: `agent:${agent}`, promptVersion: `${agent}-v1`, schemaVersion: `${agent}-v1`, model: llmModel(), inputDigest: createHash("sha256").update(input).digest("hex"), status: "succeeded", attempts: attempt, errorCode: null, latencyMs: durationMs });
-      return { value, trace: { ...baseTrace, status: "succeeded", durationMs, output: value } };
+      recordAiRun({ purpose: `agent:${agent}`, promptVersion: `${agent}-v1`, schemaVersion: `${agent}-v1`, model: `${result.provider}:${result.model}`, inputDigest: createHash("sha256").update(input).digest("hex"), status: "succeeded", attempts: attempt, errorCode: null, latencyMs: durationMs });
+      return { value, trace: { ...baseTrace, status: "succeeded", durationMs, provider: result.provider, model: result.model, output: value } };
     } catch (error) {
       if (attempt === 2) {
         const durationMs = Date.now() - started;
-        recordAiRun({ purpose: `agent:${agent}`, promptVersion: `${agent}-v1`, schemaVersion: `${agent}-v1`, model: llmModel(), inputDigest: createHash("sha256").update(input).digest("hex"), status: "failed", attempts: attempt, errorCode: error instanceof Error ? error.message.slice(0, 120) : "UNKNOWN", latencyMs: durationMs });
+        recordAiRun({ purpose: `agent:${agent}`, promptVersion: `${agent}-v1`, schemaVersion: `${agent}-v1`, model: `${providers.primary?.model || "none"}|${providers.fallback?.model || "none"}`, inputDigest: createHash("sha256").update(input).digest("hex"), status: "failed", attempts: attempt, errorCode: error instanceof Error ? error.message.slice(0, 120) : "UNKNOWN", latencyMs: durationMs });
         return { value: null as T, trace: { ...baseTrace, status: "failed", durationMs, error: error instanceof Error ? error.message.slice(0, 200) : "UNKNOWN" } };
       }
     }
@@ -106,7 +98,7 @@ export async function orchestratePoc(challenge: Challenge, startup: Startup, poc
   const synthesis = await callAgent("orchestrator", "orchestrator and sceptical programme manager", "Synthesise the specialist findings into a concise decision brief. Conditions and questions must address the most material evidence gaps. Do not approve a POC or infer commercial success.", synthesisSchema, synthesisJson, combined);
   const fallback = capability.trace.status === "fallback" && delivery.trace.status === "fallback" && commercial.trace.status === "fallback" && synthesis.trace.status === "fallback";
   return {
-    generatedBy: fallback ? "Deterministic fallback" : "deepseek-v4.1-flash",
+    generatedBy: fallback ? "Deterministic fallback" : ([capability, delivery, commercial, synthesis].find(item => item.trace.provider)?.trace.provider === "gemma" ? `Gemma 4 (${gemmaModel()})` : `DeepSeek fallback (${deepseekModel()})`),
     trace: [capability.trace, delivery.trace, commercial.trace, synthesis.trace],
     assessment: capability.value?.capabilityEvidence?.length ? capability.value : { capabilityEvidence: startup.reasons, deliveryRisks: startup.gaps, missingEvidence: startup.gaps, firstMeetingQuestions: ["Which comparable deployments can you evidence?", "Who owns implementation and data integration?"], recommendation: "Clarify" },
     plan: commercial.value?.thesis ? commercial.value : { thesis: `Validate ${startup.name}’s ${startup.capabilities[0]} capability in a bounded enterprise pilot.`, scope: "One enterprise site, one workflow and a validated baseline.", outOfScope: ["Nationwide rollout", "Unvalidated production data access"], successMetric: challenge.target || "Measured improvement against an approved baseline", milestones: [{ phase: "Align", outcome: "Confirm sponsor, data owner and baseline", owner: "Programme manager", dueInDays: 14 }, { phase: "Prove", outcome: "Run limited-cohort pilot and review evidence weekly", owner: "Delivery owner", dueInDays: 56 }, { phase: "Decide", outcome: "Validate result and agree next step", owner: "Corporate sponsor", dueInDays: 84 }], risks: startup.gaps },
