@@ -70,9 +70,6 @@ export function LandingPage() {
 
       <main id="main">
         <section className="mx-auto max-w-6xl px-5 pt-16 pb-10 text-center sm:px-8 sm:pt-24">
-          <Badge variant="outline" className="mb-7 border-teal/25 bg-teal/8 px-3 py-1 font-medium text-teal">
-            Fictional demonstration data
-          </Badge>
           <h1 className="font-display mx-auto max-w-4xl text-[clamp(2.15rem,6vw,4.35rem)] leading-[1.05] font-medium tracking-[-0.04em] text-balance">
             From a corporate problem to a measured, evidence-backed cross-border POC.
           </h1>
@@ -205,7 +202,12 @@ export function LandingPage() {
       <footer className="border-t border-navy/8">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-8 text-sm text-navy/55 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p className="tracking-[0.14em] uppercase">ASEAN · Cross-border POC execution</p>
-          <p>All seeded organisations, people, challenges, metrics, and outcomes are fictional.</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Badge variant="outline" className="border-teal/25 text-teal">
+              Fictional demo
+            </Badge>
+            <p>All seeded organisations, people, challenges, metrics, and outcomes are fictional.</p>
+          </div>
         </div>
       </footer>
     </div>
