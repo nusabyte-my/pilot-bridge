@@ -1,5 +1,4 @@
-:root { --paper:#f8f9f7; --white:#fff; --ink:#18201e; --muted:#68736f; --line:#dfe4e0; --soft:#eff2ef; --green:#176b50; --green-soft:#e8f3ed; --amber:#915f16; --amber-soft:#fcf3df; --red:#a34337; --red-soft:#fff0ed; }
-.shell { min-height:100vh; background:var(--paper); color:var(--ink); font-size:14px; }
+.shell { --paper:#f8f9f7; --white:#fff; --ink:#18201e; --muted:#68736f; --line:#dfe4e0; --soft:#eff2ef; --green:#176b50; --green-soft:#e8f3ed; --amber:#915f16; --amber-soft:#fcf3df; --red:#a34337; --red-soft:#fff0ed; min-height:100vh; background:var(--paper); color:var(--ink); font-size:14px; }
 .shell button,.shell input,.shell textarea,.shell select { font:inherit; }
 .shell button,.shell a,.shell input,.shell textarea,.shell select { outline-offset:4px; }
 .shell :focus-visible { outline:2px solid var(--green); }
