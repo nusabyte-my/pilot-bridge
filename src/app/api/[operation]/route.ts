@@ -2,17 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { structureChallenge, extractMeeting, draftResult, explainMatches, draftIntroduction } from "@/lib/ai";
 import { activatePoc, advanceCommercial, approveCharter, editCharter, generateCharter, makeOverdue, closePoc, rejectResult, reviewResult, saveNarrative, saveChallenge, saveMeetingActions, selectPartner, submitResult, toggleAction, toggleReadiness } from "@/lib/workflow";
 import { getData, resetData } from "@/lib/store";
-import { orchestratePoc } from "@/lib/agents";
+import { orchestratePoc, reviewAgentBrief, saveAgentBrief } from "@/lib/agents";
 import { matchCriteria } from "@/lib/matching";
 import { inputSchema } from "@/lib/schemas";
 import { convertPocIdea, requestIntroduction, savePocIdea, saveStartupProfile } from "@/lib/marketplace";
 import { z } from "zod";
 import { allowRequest, requestIdentity } from "@/lib/rate-limit";
+import { sessionFromRequest } from "@/lib/auth";
+
+const programmeOnly = new Set(["reset"]);
+const corporateOnly = new Set(["save-challenge", "partner", "charter", "edit-charter", "activate", "close", "review", "reject-result", "commercial", "explain-matches", "introduction", "agent-brief"]);
 
 const aiOperations = new Set(["structure", "explain-matches", "introduction", "agent-brief", "meeting", "narrative"]);
 const allowedFiles = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
 export async function POST(request: NextRequest, { params }: { params: Promise<{ operation: string }> }) {
   const { operation } = await params;
+  if (process.env.PILOTBRIDGE_DEMO !== "true") {
+    const session = sessionFromRequest(request);
+    if (!session) return NextResponse.json({ ok: false, message: "Authentication required." }, { status: 401 });
+    if (programmeOnly.has(operation) && session.role !== "Programme manager") return NextResponse.json({ ok: false, message: "Programme manager access required." }, { status: 403 });
+    if (corporateOnly.has(operation) && session.role === "Startup") return NextResponse.json({ ok: false, message: "Corporate or programme access required." }, { status: 403 });
+  }
   if (aiOperations.has(operation) && !allowRequest(`${requestIdentity(request)}:${operation}`, 8, 60_000)) return NextResponse.json({ ok: false, message: "Too many AI requests. Try again in a minute." }, { status: 429 });
   if (Number(request.headers.get("content-length") || 0) > 12 * 1024 * 1024) return NextResponse.json({ ok: false, message: "Request too large." }, { status: 413 });
   try {
@@ -27,7 +37,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
     if (operation === "explain-matches") { const body = await request.json(); const data = getData(); const challenge = data.challenges.find(c => c.id === z.string().parse(body.challengeId)); if (!challenge) throw new Error("Challenge not found."); const startups = [...data.startups].sort((a,b)=>matchCriteria(b).total-matchCriteria(a).total).slice(0,3); return NextResponse.json(await explainMatches(challenge,startups)); }
     if (operation === "introduction") { const body = await request.json(); const data = getData(); const challenge = data.challenges.find(c => c.id === z.string().parse(body.challengeId)); const startup = data.startups.find(s => s.id === z.string().parse(body.startupId)); if (!challenge || !startup) throw new Error("Challenge or startup not found."); return NextResponse.json(await draftIntroduction(challenge,startup)); }
-    if (operation === "agent-brief") { const body = await request.json(); const data = getData(); const challenge = data.challenges.find(c => c.id === z.string().parse(body.challengeId)); const startup = data.startups.find(s => s.id === z.string().parse(body.startupId)); const poc = data.pocs.find(p => p.id === z.string().parse(body.pocId)); if (!challenge || !startup || !poc) throw new Error("Challenge, startup or POC not found."); return NextResponse.json(await orchestratePoc(challenge, startup, poc)); }
+    if (operation === "agent-brief") { const body = await request.json(); const data = getData(); const challenge = data.challenges.find(c => c.id === z.string().parse(body.challengeId)); const startup = data.startups.find(s => s.id === z.string().parse(body.startupId)); const poc = data.pocs.find(p => p.id === z.string().parse(body.pocId)); if (!challenge || !startup || !poc) throw new Error("Challenge, startup or POC not found."); const result = await orchestratePoc(challenge, startup, poc); const briefId = saveAgentBrief(result, { pocId: poc.id, startupId: startup.id, challengeId: challenge.id }); return NextResponse.json({ ...result, briefId }); }
     if (operation === "meeting") return NextResponse.json(await extractMeeting(z.string().min(20).max(20000).parse((await request.json()).notes)));
     if (operation === "narrative") { const body = await request.json(); return NextResponse.json({ narrative: await draftResult(body.baseline, body.target, body.actual, body.unit) }); }
     const body = await request.json().catch(() => ({}));
@@ -48,6 +58,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       case "review": result = reviewResult(pocId); break;
       case "reject-result": result = rejectResult(pocId); break;
       case "close": result = closePoc(z.string().parse(body.reason), pocId); break;
+      case "review-brief": result = reviewAgentBrief(z.string().parse(body.briefId), z.enum(["Approved", "Rejected"]).parse(body.status), z.string().parse(body.reviewer || "Programme manager")); break;
       case "narrative-save": result = saveNarrative(z.string().parse(body.narrative), pocId); break;
       case "commercial": result = advanceCommercial(z.string().parse(body.stage), pocId, { value: z.number().nullable().optional().parse(body.value) ?? null, currency: z.string().nullable().optional().parse(body.currency) ?? null, evidence: z.string().nullable().optional().parse(body.evidence) ?? null }); break;
       case "profile": result = saveStartupProfile(body); break;
