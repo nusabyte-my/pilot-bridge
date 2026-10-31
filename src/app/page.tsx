@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BridgeArc } from "@/components/bridge-arc";
 import { ArrowRight, ArrowUpRight, BadgeCheck, Check, CircleDashed, FileCheck2, Network, ShieldCheck, Sparkles, Waypoints } from "lucide-react";
 export const metadata = { title: "PilotBridge — From connection to verified outcome", description: "PilotBridge turns corporate challenges into explainable startup matches, structured cross-border POCs, and evidence-backed commercial outcomes." };
 const steps = [
@@ -17,7 +18,7 @@ export default function LandingPage() {
           <h1>Introductions are easy.<br/><span>Outcomes are the hard part.</span></h1>
           <p>PilotBridge carries a corporate challenge through explainable startup matching, a jointly approved cross-border POC, and a measured result backed by evidence.</p>
           <div className="landing-cta"><Link className="button primary" href="/app">Explore the working demo<ArrowRight size={15}/></Link><a className="button" href="#how">See the workflow</a></div>
-          <p className="landing-note"><CircleDashed size={12}/>Fictional data · No signup required for the demo</p>
+          <p className="landing-note"><CircleDashed size={12}/>Fictional data · Sign in with the demo account</p>
         </div>
         <div className="landing-panel" aria-label="Product preview">
           <div className="landing-panel-head"><span>POC workspace</span><span className="badge green"><span className="status-dot"/>On Track</span></div>
@@ -40,10 +41,14 @@ export default function LandingPage() {
         <div><strong>1</strong><span>challenge</span></div><div><strong>3</strong><span>explained matches</span></div><div><strong>2</strong><span>charter approvals</span></div><div><strong>1</strong><span>verified outcome</span></div><div className="landing-strip-note">Every introduction ends with an owner, a deadline and a measurable next step.</div>
       </section>
 
+      <section className="landing-section landing-arc"><BridgeArc/></section>
+
       <section className="landing-section" id="how">
         <div className="landing-section-head"><div><div className="eyebrow">The loop</div><h2>One path from problem to proof.</h2></div><p>AI drafts. Deterministic logic controls eligibility, locks, health and reported metrics. People approve.</p></div>
         <div className="landing-steps">{steps.map(step => <div className="landing-step" key={step.n}><span>{step.n}</span><h3>{step.title}</h3><p>{step.body}</p></div>)}</div>
       </section>
+
+      <section className="landing-section landing-ownership"><div className="landing-ownership-grid"><div><div className="eyebrow">The application owns the record</div><h2>AI drafts JSON.<br/>The workflow owns truth.</h2><p>Unknown values stay missing. Malformed output cannot mutate state. Eligibility, locks, health and reported metrics are deterministic.</p></div><div className="landing-owned"><div><span>Application-owned</span><ul><li>Eligibility and partner locks</li><li>Pipeline transitions and approvals</li><li>Deterministic health and metrics</li><li>Commercial value until reviewed</li></ul></div><div><span>AI-drafted</span><ul><li>Structured challenge extraction</li><li>Meeting notes to proposed actions</li><li>Match explanations and introductions</li><li>Result-card narrative</li></ul></div></div></div></section>
 
       <section className="landing-section landing-split" id="trust">
         <div><div className="eyebrow">Trust by design</div><h2>Evidence over activity.</h2><p className="landing-lede">Most ecosystem platforms stop at the introduction. PilotBridge records what happened next—and refuses to overstate it.</p>
