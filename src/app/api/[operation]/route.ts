@@ -7,10 +7,14 @@ import { matchCriteria } from "@/lib/matching";
 import { inputSchema } from "@/lib/schemas";
 import { convertPocIdea, requestIntroduction, savePocIdea, saveStartupProfile } from "@/lib/marketplace";
 import { z } from "zod";
+import { allowRequest, requestIdentity } from "@/lib/rate-limit";
 
+const aiOperations = new Set(["structure", "explain-matches", "introduction", "agent-brief", "meeting", "narrative"]);
 const allowedFiles = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
 export async function POST(request: NextRequest, { params }: { params: Promise<{ operation: string }> }) {
   const { operation } = await params;
+  if (aiOperations.has(operation) && !allowRequest(`${requestIdentity(request)}:${operation}`, 8, 60_000)) return NextResponse.json({ ok: false, message: "Too many AI requests. Try again in a minute." }, { status: 429 });
+  if (Number(request.headers.get("content-length") || 0) > 12 * 1024 * 1024) return NextResponse.json({ ok: false, message: "Request too large." }, { status: 413 });
   try {
     if (operation === "structure") {
       const form = await request.formData();
