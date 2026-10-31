@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { getLlmClient, llmModel } from "./llm";
-import { recordAiRun } from "./store";
+import { recordActivity, recordAiRun, updateData } from "./store";
 import type { Challenge, Poc, Startup } from "./types";
 
 const stringList = (max: number) => z.array(z.string()).transform(items => items.slice(0, max));
@@ -77,6 +77,24 @@ const capabilityJson = { type: "object", required: ["capabilityEvidence", "deliv
 const planJson = { type: "object", required: ["thesis", "scope", "outOfScope", "successMetric", "milestones", "risks"], properties: { thesis: { type: "string" }, scope: { type: "string" }, outOfScope: { type: "array", items: { type: "string" } }, successMetric: { type: "string" }, milestones: { type: "array", items: { type: "object", properties: { phase: { type: "string" }, outcome: { type: "string" }, owner: { type: "string" }, dueInDays: { type: "integer" } } } }, risks: { type: "array", items: { type: "string" } } } };
 const synthesisJson = { type: "object", required: ["summary", "conditions", "questions", "nextAction", "readiness"], properties: { summary: { type: "string" }, conditions: { type: "array", items: { type: "string" } }, questions: { type: "array", items: { type: "string" } }, nextAction: { type: "string" }, readiness: { type: "string", enum: ["Ready for first meeting", "Needs clarification", "Not ready"] } } };
 
+export function saveAgentBrief(result: OrchestrationResult, ids: { pocId: string; startupId: string; challengeId: string }) {
+  return updateData(data => {
+    data.agentBriefs.unshift({ id: crypto.randomUUID(), ...ids, generatedBy: result.generatedBy, trace: result.trace, assessment: result.assessment, plan: result.plan, synthesis: result.synthesis, reviewStatus: "Draft", reviewedBy: null, reviewedAt: null, createdAt: new Date().toISOString() });
+    data.agentBriefs = data.agentBriefs.slice(0, 50);
+    recordActivity(data, ids.pocId, "Multi-agent POC brief generated for review");
+    return data.agentBriefs[0].id;
+  });
+}
+export function reviewAgentBrief(id: string, status: "Approved" | "Rejected", reviewer: string) {
+  return updateData(data => {
+    const brief = data.agentBriefs.find(item => item.id === id);
+    if (!brief) return { ok: false, message: "Agent brief not found." };
+    if (brief.reviewStatus !== "Draft") return { ok: false, message: "This brief has already been reviewed." };
+    brief.reviewStatus = status; brief.reviewedBy = reviewer; brief.reviewedAt = new Date().toISOString();
+    recordActivity(data, brief.pocId, `Multi-agent brief ${status.toLowerCase()} by ${reviewer}`);
+    return { ok: true, message: `Brief ${status.toLowerCase()}. It remains advisory and does not change POC state.` };
+  });
+}
 export async function orchestratePoc(challenge: Challenge, startup: Startup, poc: Poc): Promise<OrchestrationResult> {
   const input = brief(challenge, startup, poc);
   const [capability, delivery, commercial] = await Promise.all([

@@ -23,7 +23,7 @@ export function getData(): AppData {
   const data = JSON.parse(row.data) as AppData;
   const defaults = seedData();
   data.investors ??= defaults.investors; data.pocIdeas ??= []; data.introductions ??= [];
-  data.organisations ??= defaults.organisations; data.users ??= defaults.users; data.matches ??= []; data.aiRuns ??= []; data.meetings ??= [];
+  data.organisations ??= defaults.organisations; data.users ??= defaults.users; data.matches ??= []; data.aiRuns ??= []; data.meetings ??= []; data.agentBriefs ??= [];
   data.pocs.forEach(poc => { poc.createdAt ??= poc.lastActivityAt; poc.partnerSelectedAt ??= null; poc.charterReviewAt ??= null; poc.resultSubmittedAt ??= null; poc.completedAt ??= null; });
   Object.values(data.results).forEach(result => { result.commercialValue ??= null; result.currency ??= null; result.commercialEvidence ??= null; result.commercialVerified ??= false; });
   data.actions.forEach(action => { action.pocId ??= data.pocs[0].id; }); data.evidence.forEach(item => { item.pocId ??= data.pocs[0].id; });
