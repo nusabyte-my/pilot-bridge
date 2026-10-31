@@ -13,6 +13,7 @@ export function calculateHealth(poc: Poc, milestones: Milestone[], now = new Dat
 }
 function dateDifference(before: string, after: string) { return (Date.parse(after) - Date.parse(before)) / 86400000; }
 export function nextBestAction(poc: Poc, milestones: Milestone[]): string {
+  if (poc.closedAt) return "This POC was closed without a pilot. The closure reason is recorded in activity history.";
   if (!poc.startupId) return "Compare eligible startups and confirm a POC partner.";
   if (poc.status === "PartnerSelected") return "Generate a shared POC charter for both parties to review.";
   if (poc.status === "CharterReview") return "Review and approve the charter from both organisations to activate the pilot.";
