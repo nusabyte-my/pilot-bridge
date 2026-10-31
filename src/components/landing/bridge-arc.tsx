@@ -3,13 +3,14 @@
 import { motion, useReducedMotion } from "motion/react";
 
 const STAGES = ["Challenge", "Matching", "Charter", "Outcome"] as const;
+const ARC_LENGTH = 546;
 
 export function BridgeArc() {
   const reduceMotion = useReducedMotion();
 
   return (
     <figure className="mx-auto w-full max-w-3xl px-2">
-      <svg viewBox="0 0 640 220" role="img" className="h-auto w-full">
+      <svg viewBox="0 0 640 220" role="img" className="h-auto w-full overflow-visible">
         <title>PilotBridge execution span from challenge to outcome</title>
         <defs>
           <linearGradient id="bridge-stroke" x1="48" y1="0" x2="592" y2="0" gradientUnits="userSpaceOnUse">
@@ -21,13 +22,13 @@ export function BridgeArc() {
           d="M 64 128 H 576"
           fill="none"
           stroke="#0E7C86"
-          strokeOpacity="0.28"
+          strokeOpacity="0.35"
           strokeWidth="2"
           strokeDasharray="2 10"
           strokeLinecap="round"
-          initial={reduceMotion ? false : { pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          initial={reduceMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
         />
         <motion.path
           d="M 64 128 C 160 28 480 28 576 128"
@@ -35,12 +36,13 @@ export function BridgeArc() {
           stroke="url(#bridge-stroke)"
           strokeWidth="5"
           strokeLinecap="round"
-          initial={reduceMotion ? false : { pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.35, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          strokeDasharray={ARC_LENGTH}
+          initial={reduceMotion ? false : { strokeDashoffset: ARC_LENGTH }}
+          animate={{ strokeDashoffset: 0 }}
+          transition={{ duration: 1.35, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
         />
         <Node cx={64} cy={128} fill="#0E7C86" delay={0.05} reduceMotion={Boolean(reduceMotion)} />
-        <Node cx={576} cy={128} fill="#E8893A" delay={1.2} reduceMotion={Boolean(reduceMotion)} pulse />
+        <Node cx={576} cy={128} fill="#E8893A" delay={1.15} reduceMotion={Boolean(reduceMotion)} pulse />
       </svg>
       <ol className="mt-2 grid grid-cols-2 gap-x-6 gap-y-3 text-sm text-navy/70 sm:grid-cols-4">
         {STAGES.map((stage, index) => (
