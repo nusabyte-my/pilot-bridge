@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
 import { seedData } from "./seed";
-import type { AppData, Challenge, Poc, PocStatus } from "./types";
+import type { AiRun, AppData, Challenge, Poc, PocStatus } from "./types";
 
 const globalStore = globalThis as unknown as { pilotBridgeDb?: Database.Database };
 function getDb() {
@@ -23,7 +23,7 @@ export function getData(): AppData {
   const data = JSON.parse(row.data) as AppData;
   const defaults = seedData();
   data.investors ??= defaults.investors; data.pocIdeas ??= []; data.introductions ??= [];
-  data.organisations ??= defaults.organisations; data.users ??= defaults.users; data.matches ??= [];
+  data.organisations ??= defaults.organisations; data.users ??= defaults.users; data.matches ??= []; data.aiRuns ??= []; data.meetings ??= [];
   data.pocs.forEach(poc => { poc.createdAt ??= poc.lastActivityAt; poc.partnerSelectedAt ??= null; poc.charterReviewAt ??= null; poc.resultSubmittedAt ??= null; poc.completedAt ??= null; });
   Object.values(data.results).forEach(result => { result.commercialValue ??= null; result.currency ??= null; result.commercialEvidence ??= null; result.commercialVerified ??= false; });
   data.actions.forEach(action => { action.pocId ??= data.pocs[0].id; }); data.evidence.forEach(item => { item.pocId ??= data.pocs[0].id; });
@@ -38,6 +38,9 @@ export function updateData<T>(mutate: (data: AppData) => T): T {
     db.prepare("UPDATE app_state SET data = ?, updated_at = ? WHERE id = 1").run(JSON.stringify(data), new Date().toISOString());
     return value;
   })();
+}
+export function recordAiRun(run: Omit<AiRun,"id"|"createdAt">) {
+  return updateData(data => { data.aiRuns.unshift({ ...run, id: crypto.randomUUID(), createdAt: new Date().toISOString() }); data.aiRuns = data.aiRuns.slice(0, 100); });
 }
 export function recordActivity(data: AppData, pocId: string | null, text: string, type = "workflow") {
   data.activities.unshift({ id: crypto.randomUUID(), pocId, text, timestamp: new Date().toISOString(), type });

@@ -34,7 +34,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       case "approve": result = approveCharter(z.enum(["corporate", "startup"]).parse(body.party), pocId); break;
       case "edit-charter": result = editCharter(z.string().parse(body.content), pocId); break;
       case "activate": result = activatePoc(pocId); break;
-      case "actions": result = saveMeetingActions(z.array(z.object({ title: z.string().min(3), owner: z.string().nullable(), dueDate: z.string().nullable() })).max(30).parse(body.actions), pocId); break;
+      case "actions": result = saveMeetingActions(z.array(z.object({ title: z.string().min(3), owner: z.string().nullable(), dueDate: z.string().nullable() })).max(30).parse(body.actions), pocId, body.review ? z.object({ decisions: z.array(z.string()), requestedDocuments: z.array(z.string()), unresolvedIssues: z.array(z.string()), nextMilestone: z.string().nullable(), notes: z.string() }).parse(body.review) : undefined); break;
       case "readiness": toggleReadiness(z.string().parse(body.key), pocId); result = { ok: true, message: "Readiness updated." }; break;
       case "complete-action": toggleAction(z.string().parse(body.id)); result = { ok: true, message: "Action updated." }; break;
       case "overdue": makeOverdue(pocId); result = { ok: true, message: "Critical milestone is now overdue." }; break;

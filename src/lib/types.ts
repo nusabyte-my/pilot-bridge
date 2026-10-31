@@ -37,11 +37,13 @@ export interface Poc {
 }
 export interface Evidence { id: string; pocId: string; reference: string; description: string; verified: boolean; }
 export interface Result { baseline: string; target: string; actual: string; unit: string; period: string; testimonial: string; commercialStage: CommercialStage; commercialValue: number | null; currency: string | null; commercialEvidence: string | null; commercialVerified: boolean; narrative: string | null; }
+export interface AiRun { id: string; purpose: string; promptVersion: string; schemaVersion: string; model: string; inputDigest: string; status: "succeeded" | "failed" | "fallback"; attempts: number; errorCode: string | null; latencyMs: number; createdAt: string; }
+export interface MeetingRecord { id: string; pocId: string; notesDigest: string; decisions: string[]; requestedDocuments: string[]; unresolvedIssues: string[]; nextMilestone: string | null; reviewedAt: string; }
 export interface Activity { id: string; pocId: string | null; text: string; timestamp: string; type: string; }
 export interface AppData {
   challenges: Challenge[]; startups: Startup[]; pocs: Poc[]; milestones: Milestone[]; actions: PocAction[];
   evidence: Evidence[]; results: Record<string, Result>; activities: Activity[];
   investors: Investor[]; pocIdeas: PocIdea[]; introductions: Introduction[];
-  organisations: Organisation[]; users: User[]; matches: MatchRecord[];
+  organisations: Organisation[]; users: User[]; matches: MatchRecord[]; aiRuns: AiRun[]; meetings: MeetingRecord[];
 }
 export type ActionResult = { ok: boolean; message: string };

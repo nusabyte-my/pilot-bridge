@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { getData, recordActivity, syncChallenge, updateData } from "./store";
 import type { ActionResult, AppData } from "./types";
 import { resultSchema } from "./schemas";
@@ -70,13 +71,14 @@ export function activatePoc(pocId = "poc-delivery"): ActionResult {
     return { ok: true, message: "POC activated. Execution tracking is now live." };
   });
 }
-export function saveMeetingActions(actions: { title: string; owner: string | null; dueDate: string | null }[], pocId = "poc-delivery"): ActionResult {
+export function saveMeetingActions(actions: { title: string; owner: string | null; dueDate: string | null }[], pocId = "poc-delivery", review?: { decisions: string[]; requestedDocuments: string[]; unresolvedIssues: string[]; nextMilestone: string | null; notes: string }): ActionResult {
   return updateData(data => {
     const poc = scopedPoc(data, pocId);
     if (!["Active", "CharterReview", "ResultSubmitted"].includes(poc.status)) return failure("Activate the POC before saving execution actions.");
     data.actions = [...data.actions.filter(action => action.pocId !== pocId), ...actions.map(action => ({ id: crypto.randomUUID(), pocId, title: action.title, owner: action.owner || "Unassigned", dueDate: action.dueDate || "Unscheduled", status: "Open" }))];
+    if (review) data.meetings.unshift({ id: crypto.randomUUID(), pocId, notesDigest: createHash("sha256").update(review.notes).digest("hex"), decisions: review.decisions, requestedDocuments: review.requestedDocuments, unresolvedIssues: review.unresolvedIssues, nextMilestone: review.nextMilestone, reviewedAt: new Date().toISOString() });
     recordActivity(data, poc.id, `${actions.length} reviewed meeting actions saved`);
-    return { ok: true, message: `${actions.length} reviewed actions saved to the workspace.` };
+    return { ok: true, message: `${actions.length} reviewed actions and meeting decisions saved to the workspace.` };
   });
 }
 export function toggleReadiness(key: string, pocId = "poc-delivery") { updateData(data => { const poc = scopedPoc(data, pocId); poc.readiness[key] = !poc.readiness[key]; recordActivity(data, poc.id, "Cross-border readiness checklist updated"); }); }
