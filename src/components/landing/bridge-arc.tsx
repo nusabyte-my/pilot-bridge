@@ -1,16 +1,22 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { motion, useReducedMotion } from "motion/react";
 
 const STAGES = ["Challenge", "Matching", "Charter", "Outcome"] as const;
 const ARC_LENGTH = 546;
 
+const emptySubscribe = () => () => {};
+
 export function BridgeArc() {
   const reduceMotion = useReducedMotion();
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+
+  const shouldAnimate = mounted && !reduceMotion;
 
   return (
     <figure className="mx-auto w-full max-w-3xl px-2">
-      <svg viewBox="0 0 640 220" role="img" className="h-auto w-full overflow-visible">
+      <svg viewBox="0 10 640 155" role="img" className="h-auto w-full overflow-visible">
         <title>PilotBridge execution span from challenge to outcome</title>
         <defs>
           <linearGradient id="bridge-stroke" x1="48" y1="0" x2="592" y2="0" gradientUnits="userSpaceOnUse">
@@ -26,7 +32,7 @@ export function BridgeArc() {
           strokeWidth="2"
           strokeDasharray="2 10"
           strokeLinecap="round"
-          initial={reduceMotion ? false : { opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
         />
@@ -37,19 +43,19 @@ export function BridgeArc() {
           strokeWidth="5"
           strokeLinecap="round"
           strokeDasharray={ARC_LENGTH}
-          initial={reduceMotion ? false : { strokeDashoffset: ARC_LENGTH }}
+          initial={shouldAnimate ? { strokeDashoffset: ARC_LENGTH } : false}
           animate={{ strokeDashoffset: 0 }}
           transition={{ duration: 1.35, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
         />
-        <Node cx={64} cy={128} fill="#0E7C86" delay={0.05} reduceMotion={Boolean(reduceMotion)} />
-        <Node cx={576} cy={128} fill="#E8893A" delay={1.15} reduceMotion={Boolean(reduceMotion)} pulse />
+        <Node cx={64} cy={128} fill="#0E7C86" delay={0.05} animate={shouldAnimate} />
+        <Node cx={576} cy={128} fill="#E8893A" delay={1.15} animate={shouldAnimate} pulse={shouldAnimate} />
       </svg>
-      <ol className="mt-2 grid grid-cols-2 gap-x-6 gap-y-3 text-sm text-navy/70 sm:grid-cols-4">
+      <ol className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 text-sm text-navy/70 sm:grid-cols-4">
         {STAGES.map((stage, index) => (
           <motion.li
             key={stage}
-            className={`font-medium ${index === STAGES.length - 1 ? "text-orange sm:text-right" : index === 0 ? "text-teal" : "sm:text-center"}`}
-            initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+            className={`font-medium ${index === STAGES.length - 1 ? "text-orange text-right" : index === 0 ? "text-teal text-left" : "text-center"}`}
+            initial={shouldAnimate ? { opacity: 0, y: 8 } : false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45 + index * 0.12, duration: 0.4 }}
           >
@@ -66,24 +72,24 @@ function Node({
   cy,
   fill,
   delay,
-  reduceMotion,
+  animate,
   pulse = false,
 }: {
   cx: number;
   cy: number;
   fill: string;
   delay: number;
-  reduceMotion: boolean;
+  animate: boolean;
   pulse?: boolean;
 }) {
   return (
     <motion.g
-      initial={reduceMotion ? false : { scale: 0.6, opacity: 0 }}
+      initial={animate ? { scale: 0.6, opacity: 0 } : false}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ delay, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       style={{ transformOrigin: `${cx}px ${cy}px` }}
     >
-      {pulse && !reduceMotion ? (
+      {pulse ? (
         <motion.circle
           cx={cx}
           cy={cy}

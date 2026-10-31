@@ -1,5 +1,5 @@
 "use client";
-
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
@@ -44,16 +44,18 @@ const DRAFTED = [
   "Result-card narrative drafting",
 ] as const;
 
+const emptySubscribe = () => () => {};
+
 export function LandingPage() {
   const reduceMotion = useReducedMotion();
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const shouldAnimate = mounted && !reduceMotion;
 
   return (
     <div className="min-h-screen bg-ivory text-navy">
       <header className="sticky top-0 z-20 border-b border-navy/8 bg-ivory/90 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-5 sm:px-8">
-          <Link href="/" aria-label="PilotBridge home" className="shrink-0">
-            <Wordmark />
-          </Link>
+          <Wordmark className="shrink-0" />
           <nav className="flex items-center gap-2 sm:gap-3" aria-label="Landing">
             <Button asChild variant="ghost" className="hidden text-navy/70 hover:bg-navy/5 hover:text-navy sm:inline-flex">
               <Link href="/app/marketplace">Marketplace</Link>
@@ -103,16 +105,19 @@ export function LandingPage() {
 
         <section className="mx-auto max-w-6xl px-5 pb-20 sm:px-8">
           <h2 className="font-display text-2xl font-medium tracking-[-0.03em]">POC pipeline</h2>
-          <ol className="mt-5 flex flex-col gap-0 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1 sm:gap-y-3">
+          <ol className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2 sm:gap-y-3">
             {PIPELINE.map((stage, index) => (
-              <li key={stage} className="flex items-center gap-2 text-[15px] text-navy">
-                <span className="font-medium">{stage}</span>
+              <li key={stage} className="flex items-center gap-2 text-[14px] text-navy">
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-navy/12 bg-white/70 px-3 py-1.5 font-medium shadow-xs">
+                  <span className="text-teal font-mono text-xs">{index + 1}</span>
+                  {stage}
+                </span>
                 {index < PIPELINE.length - 1 ? (
-                  <span className="hidden text-navy/30 sm:inline" aria-hidden="true">
+                  <span className="hidden text-navy/40 sm:inline" aria-hidden="true">
                     →
                   </span>
                 ) : null}
-                {index < PIPELINE.length - 1 ? <Separator className="my-3 sm:hidden" /> : null}
+                {index < PIPELINE.length - 1 ? <Separator className="my-2 sm:hidden" /> : null}
               </li>
             ))}
           </ol>
@@ -134,7 +139,7 @@ export function LandingPage() {
                 <motion.li
                   key={step.title}
                   className="border-t border-navy/10 py-6 first:border-t-0 first:pt-0"
-                  initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+                  initial={shouldAnimate ? { opacity: 0, y: 12 } : false}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-10%" }}
                   transition={{ duration: 0.45, delay: index * 0.06 }}

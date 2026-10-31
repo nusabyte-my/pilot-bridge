@@ -43,7 +43,7 @@
   --popover: #fffdf8;
   --popover-foreground: #0a1628;
   --primary: #0e7c86;
-  --primary-foreground: #f7f4ee;
+  --primary-foreground: #ffffff;
   --secondary: #0a1628;
   --secondary-foreground: #f7f4ee;
   --muted: #ebe6da;
@@ -58,9 +58,45 @@
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), "Source Sans 3", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scoped PilotBridge workspace & login tokens */
+.shell, .login-shell {
+  --paper: #f8f9f7;
+  --white: #ffffff;
+  --ink: #18201e;
+  --muted: #68736f;
+  --line: #dfe4e0;
+  --soft: #eff2ef;
+  --green: #176b50;
+  --green-soft: #e8f3ed;
+  --amber: #915f16;
+  --amber-soft: #fcf3df;
+  --red: #a34337;
+  --red-soft: #fff0ed;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+}
+
+/* Official Logo styling */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.logo-image {
+  height: 38px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  display: block;
 }
 
 .landing {
@@ -78,5 +114,3 @@ body {
   outline: 2px solid var(--primary);
   outline-offset: 3px;
 }
-
-.logo{display:inline-flex;align-items:center;text-decoration:none}.logo-image{width:auto;height:38px;object-fit:contain}.topbar .logo-image{height:34px}.login-card .logo-image{height:44px}.demo-entry{width:100%;min-height:46px}.login-divider{display:flex;align-items:center;gap:12px;margin:18px 0;font-size:10px;color:var(--muted)}.login-divider::before,.login-divider::after{content:"";height:1px;background:var(--line);flex:1}
