@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, FileStack, LayoutDashboard, Network, Waypoints } from "lucide-react";
-import { AccountMenu } from "@/components/account-menu";
 
 const NAV = [
   { href: "/challenges", label: "Challenges", icon: LayoutDashboard, match: (path: string) => path.startsWith("/challenges") },
@@ -12,7 +11,7 @@ const NAV = [
   { href: "/outcomes", label: "Outcomes", icon: BarChart3, match: (path: string) => path.startsWith("/outcomes") },
 ] as const;
 
-export function AppHeader({ name, role, demo }: { name: string; role: string; demo: boolean }) {
+export function AppHeader() {
   const pathname = usePathname();
 
   return (
@@ -42,7 +41,9 @@ export function AppHeader({ name, role, demo }: { name: string; role: string; de
           <span className="demo-dot" />
           Fictional demo data
         </span>
-        <AccountMenu name={name} role={role} demo={demo} />
+        <button className="avatar" aria-label="Current user: Programme manager">
+          PM
+        </button>
       </div>
     </header>
   );

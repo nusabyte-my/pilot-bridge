@@ -17,7 +17,7 @@ const aiOperations = new Set(["structure", "explain-matches", "introduction", "a
 const allowedFiles = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
 export async function POST(request: NextRequest, { params }: { params: Promise<{ operation: string }> }) {
   const { operation } = await params;
-  if (process.env.PILOTBRIDGE_DEMO !== "true") {
+  if (process.env.PILOTBRIDGE_AUTH === "true") {
     const session = sessionFromRequest(request);
     if (!session) return NextResponse.json({ ok: false, message: "Authentication required." }, { status: 401 });
     if (programmeOnly.has(operation) && session.role !== "Programme manager") return NextResponse.json({ ok: false, message: "Programme manager access required." }, { status: 403 });
